@@ -1,0 +1,168 @@
+=============================================================             G O A L S             ==========================================================================
+1. Need to update drag select to be a trapezoid not a square to account for the perspective skewing at the edges of the screen
+2. Need to allow entities to determine draw types
+
+
+When moving as a tight group, units will maintain their orientation with each other when moving to a location
+    - Calculate the center position of the group
+    - When moving a unit, move the unit to the new location and offset by it's distance to the center of the pointer
+When moving units that are spaced far apart
+    - Move the units to the same point, they will collide when trying to reach that point
+    - When a unit reaches that point, they will stop moving and can be moved out of the way
+    - Units will attempt to reach the point while colliding for a certain period of time
+        - Starting simple, when a unit collides while attempting to move to the location, continue attempting to move to that location for 2 seconds. After that, leave them where they are
+
+
+
+
+=============================================================             N O T E S             ==========================================================================
+!! Spanning full size of window (ignoring camera) !!
+size[0] = 2;
+size[1] = 2;
+pos[0] = 0;
+pos[1] = 0;
+
+
+1. redistribute the entities for the render item
+
+
+Entity
+ - Bound Entities = array of bound entities to a unit
+ - Bound entities are added and then get managed by the parent entity
+ - How do we remove the bound entities? -> How do we know which one is which??
+    - Create a map with strings and values is the entity;
+
+=============================================================   E N G I N E   R E F A C T O R   ==========================================================================
+General notes and concepts:
+    - chunking
+    - organization based on heirarchy of costly state changes in gpu
+    - https://www.khronos.org/opengl/wiki/Shader (for limits on number of shaders)
+    - https://www.reddit.com/r/opengl/comments/3p4uml/modern_opengl_rendering_best_practices_needed/ (for good practices for structure of render loop)
+    - Advanced concepts video: https://www.gdcvault.com/play/1020791/
+    - Texture batching: https://www.youtube.com/watch?v=Fz1VySWaad8
+    - Handling controls https://www.khronos.org/opengl/wiki/Viewing_and_Transformations#:~:text=in%20the%20scene.-,How%20do%20I%20draw%202D%20controls%20over%20my%203D%20rendering%3F,-The%20basic%20strategy 
+    - Changing pointer values in structs https://stackoverflow.com/questions/2581769/dereference-a-pointer-inside-a-structure-pointer
+
+
+Still have to deal with the numerous memory leaks
+
+== GAME STATE ==
+
+- State
+    - 
+
+Files
+    - Entity Manager
+        - Add entity ✔️
+        - Remove entity ✔️
+        - Find entity (return a pointer) ✔️
+    - Main State loop
+        - Runs all state loops depending on global game state
+
+
+1. Create an entity creation function ✔️
+    * It will instantiate all the releveant information for the entity for the game state ✔️
+    * It will also instantiate all the relevant info to dictate it's rendering type/format ✔️
+2. Whenever I want to add an entity, I call this function and receive the new entity as a response ✔️
+3. I only have to update this entity object, that will then feed into the renderer directly ✔️
+
+
+
+== ENGINE STATE ==
+- Global State
+    - Shader object
+    - Texture object
+    - Camera object
+    - Input State
+    - Mouse state
+    - Time state
+    - Entity state (expanded below)
+
+ - Entity
+    - Id ✔️
+    - Type ✔️
+    - Position ✔️
+    - Velocity ✔️
+    - Acceleration ✔️
+    - Current Animation ✔️
+    - Rotation
+    - Width/Height
+    - Type specific object (Entity_Worker, Entity_Resource, etc.) 🟡
+
+ - Entity State
+    - Entity list -> to loop over when performing updates
+        - Array of entities
+    - Entity map -> to do lookups on entites
+         - Array of entity pointers
+
+
+ - Entity_Render_Item
+    - Id ✔️
+    - if the entity was updated this frame (want to minimize the amount of recalculations we have to do for the vbo's) ✔️
+    - shape (line, square, cube)
+    - orientation (vertical, horizontal) (maybe)
+    - vao, vbo, ebo ✔️
+    - vertices / indices ✔️
+    - color
+    - shader ✔️
+    - texture ✔️
+    - physics metadata ✔️
+        - static or dynamic (to optimize on updating vertex calculations)
+    - sprite sheet data ✔️
+    - All possible animations ✔️
+    - 
+
+One render item per texture
+add all vertices and indices to the vbo
+When adding a new entity, append the render item vertices and indices along with updating the length
+When removing entities, maybe we perform a swap?
+
+1. Entity needs to be removed
+2. Find entity location
+    
+
+
+
+== ENGINE PIPELINE
+for each SHADER
+    for each TEXTURE
+        for each RENDER_ITEM
+
+[
+    Shader 1 ->[
+        Texture 1 ->[]
+    ]
+    shader 2 ->[
+
+    ]
+
+]
+
+
+Create an array per shader with 32 inner arrays
+initial support of 5 shaders
+20 textures
+initialize with space for 100 entities
+realloc whenever more space is needed
+
+
+
+=============================================================              M A T H              ==========================================================================
+VECTOR / RAY NOTES
+
+Pxyz = Axyz + (Bxyz * t)
+
+P = Final Position
+A = Origin Position
+B = Ray Vector
+T = Scalar / Distance
+
+A + t(ray) = {x, y, z} Where we are solving for t when z = 0
+ray = {-0.680414, 0.680414, -0.272166}
+
+A = { 5, -5, 2}
+2 + (d * t) = 0
+2 + (-0.272166 * t) = 0
+-2 = -0.272166t
+-2 / -0.272166 = t
+t = 7.34845645672;
