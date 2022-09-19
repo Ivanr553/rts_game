@@ -1,12 +1,27 @@
-#include "worker.h"
+#include "units.h"
 
-#include "../../engine/engine.h"
-#include "../../generic/generic.h"
+#include "../../../engine/engine.h"
+#include "../../../generic/generic.h"
 
-#include "game_entities_internal.h"
-#include "components/components.h"
+#include "../game_entities_internal.h"
+#include "../components/components.h"
 
-Game_Entity *create_worker(vec3 pos, char *file_path)
+char *get_worker_data(UNIT_TYPE unit_type)
+{
+    switch (unit_type)
+    {
+    case UNIT_TYPE_MAX:
+        return "assets/units/MAX.png";
+
+    case UNIT_TYPE_ALF:
+        return "assets/units/Alf.png";
+
+    default:
+        return NULL;
+    }
+}
+
+Game_Entity *create_worker(vec3 pos, UNIT_TYPE unit_type)
 {
     /** Initializing data */
     int offset[2] = {1, 1};
@@ -21,15 +36,14 @@ Game_Entity *create_worker(vec3 pos, char *file_path)
 
     /** Base Class*/
     Game_Entity *worker = create_game_entity(entity);
-    worker->is_selectable = 1;
-    worker->is_selected = 0;
+    add_selectable_component(worker, unit_type);
     add_harvester_component(worker, 100, 0.3);
 
     add_movement_data(entity, (vec3){DEFAULT_UNIT_MAX_VELOCITY, DEFAULT_UNIT_MAX_VELOCITY, DEFAULT_UNIT_MAX_VELOCITY});
     add_collision_data(entity, 0.3);
 
     /** Render Item */
-    Render_Item *render_item = get_render_item(0, RENDER_ITEM_VERTICAL_QUAD, SHADER_DEFAULT, file_path);
+    Render_Item *render_item = get_render_item(0, RENDER_ITEM_VERTICAL_QUAD, SHADER_DEFAULT, get_worker_data(unit_type));
     append_item_to_render_item(render_item, entity);
 
     /** Only perform for the first entity */
@@ -77,7 +91,7 @@ void handle_selection(Game_Entity *worker)
 {
     Entity *select_entity = get_bound_entity(worker->entity, BOUND_ENTITY_SELECTOR);
 
-    if (worker->is_selected == 1)
+    if (worker->selectable_component->is_selected == 1)
     {
         if (!select_entity)
         {

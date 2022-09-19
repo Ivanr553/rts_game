@@ -1,1 +1,1 @@
-del .\build\*.ilk .\build\*.obj .\*.pdb .\*.exe
+del .\build\*.ilk .\*.ilk .\build\*.obj .\*.pdb .\*.exe

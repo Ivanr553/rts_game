@@ -1,7 +1,6 @@
 #pragma once
 
-#include "worker.h"
-#include "resource.h"
+#include "units/units.h"
 #include "components/components.h"
 #include "core/mouse_ray.h"
 #include "core/drag_select.h"

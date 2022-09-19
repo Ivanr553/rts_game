@@ -42,6 +42,9 @@ typedef struct in_game_store
 
     /** Map */
     Game_Map *map;
+
+    /** UI */
+    Array *selected_unit_icon_ids;
 } In_Game_Store;
 
 typedef struct game_stores

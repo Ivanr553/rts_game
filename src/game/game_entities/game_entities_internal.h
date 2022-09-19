@@ -5,6 +5,13 @@
 #include "../../engine/engine.h"
 #include "../constants/constants.h"
 
+typedef enum UNIT_TYPE
+{
+    _UNIT_TYPE,
+    UNIT_TYPE_MAX,
+    UNIT_TYPE_ALF
+} UNIT_TYPE;
+
 typedef enum building_type
 {
     _BUILDING_TYPE,
@@ -63,14 +70,22 @@ typedef struct component_resource
 
 typedef struct component_ui
 {
-    void (*on_click)();
+    /** When needing to interact with a game entity */
+    struct game_entity *game_entity_pointer;
+    void (*on_click)(struct game_entity *);
 } Component_UI;
+
+typedef struct component_selectable
+{
+    short is_selected;
+} Component_Selectable;
 
 typedef struct game_entity
 {
     Entity *entity;
-    short is_selectable;
-    short is_selected;
+
+    /** Metadata */
+    UNIT_TYPE unit_type;
 
     /** Harvesting Data */
     Component_Harvest *harvester_component;
@@ -83,6 +98,9 @@ typedef struct game_entity
 
     /** UI Data*/
     Component_UI *ui_component;
+
+    /** Selection Data */
+    Component_Selectable *selectable_component;
 
     /** Combat Data */
 

@@ -3,7 +3,6 @@
 #include "../../../engine/engine.h"
 
 #include "../game_entities_internal.h"
-#include "../resource.h"
 #include "../../state/state.h"
 
 void add_harvester_component(Game_Entity *unit_entity, int harvesting_speed, float harvesting_distance)

@@ -19,7 +19,7 @@ short handle_ui_element_click(float x, float y)
 
             if (game_entity->ui_component->on_click)
             {
-                game_entity->ui_component->on_click();
+                game_entity->ui_component->on_click(game_entity);
             }
 
             return 1;

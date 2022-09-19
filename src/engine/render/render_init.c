@@ -158,7 +158,8 @@ void init_v2()
         "assets/UI/Max-Controls.png",
         "assets/buildings/Summoning-Circle.png",
         "assets/UI/Command-Buttons.png",
-        "assets/UI/Icons.png"};
+        "assets/UI/Icons.png",
+        "assets/UI/Command-Board-Icons.png"};
 
     Shader_Group *shader_groups = calloc(SUPPORTED_SHADER_COUNT, sizeof(Shader_Group));
 

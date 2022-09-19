@@ -142,13 +142,14 @@ void handle_global_event(Global_Event event)
         {
             Entity **entity_ptr = get_item_from_array(entities, i);
             Entity *entity = *entity_ptr;
+            Game_Entity *game_entity = entity->entity_class;
 
-            if (!entity)
+            if (!entity || !game_entity)
             {
                 continue;
             }
 
-            if (entity->entity_class_type == ENTITY_CLASS_UNIT)
+            if (game_entity->selectable_component && !game_entity->resource_component)
             {
                 if (is_point_within_circle(entity->pos[0], entity->pos[1], entity->unit_radius, mouse_pos[0], mouse_pos[1]))
                 {
@@ -192,13 +193,14 @@ void handle_global_event(Global_Event event)
         {
             Entity **entity_ptr = get_item_from_array(entities, i);
             Entity *entity = *entity_ptr;
+            Game_Entity *game_entity = entity->entity_class;
 
-            if (!entity)
+            if (!entity || !game_entity)
             {
                 continue;
             }
 
-            if (entity->entity_class_type == ENTITY_CLASS_UNIT)
+            if (game_entity->selectable_component && !game_entity->resource_component)
             {
 
                 short within_x = 0;

@@ -12,6 +12,7 @@ void initialize_in_game_store(void)
     game_global.game_stores.in_game_store.control_groups = calloc(SELECTED_UNIT_MAX_COUNT, sizeof(Control_Group));
     game_global.game_stores.in_game_store.selected_control_group = CONTROL_SLOT_ONE;
     game_global.game_stores.in_game_store.selected_units_by_id = create_array(SELECTED_UNIT_MAX_COUNT, sizeof(long));
+    game_global.game_stores.in_game_store.selected_unit_icon_ids = create_array(SELECTED_UNIT_MAX_COUNT, sizeof(long));
 
     create_control_groups();
 };
@@ -48,11 +49,11 @@ void select_units(Array *entity_id_array)
     {
         long entity_id = *((long *)get_item_from_array(unselected_units, i));
         Entity *entity = get_entity_by_id(entity_id);
+        Game_Entity *game_entity = entity->entity_class;
 
-        if (entity->entity_class_type == ENTITY_CLASS_UNIT)
+        if (game_entity->selectable_component)
         {
-            Game_Entity *worker = entity->entity_class;
-            worker->is_selected = 0;
+            game_entity->selectable_component->is_selected = 0;
         }
     }
 
@@ -60,17 +61,18 @@ void select_units(Array *entity_id_array)
     {
         long entity_id = *((long *)get_item_from_array(entity_id_array, i));
         Entity *entity = get_entity_by_id(entity_id);
+        Game_Entity *game_entity = entity->entity_class;
 
-        if (entity->entity_class_type == ENTITY_CLASS_UNIT)
+        if (game_entity->selectable_component)
         {
-            Game_Entity *worker = entity->entity_class;
-            worker->is_selected = 1;
+            game_entity->selectable_component->is_selected = 1;
 
-            create_selection(worker->entity);
+            create_selection(game_entity->entity);
         }
     }
 
     game_global.game_stores.in_game_store.selected_units_by_id = entity_id_array;
+    generate_selection_icons();
 };
 
 short handle_right_click_unit_interaction(void)

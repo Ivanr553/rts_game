@@ -42,7 +42,7 @@ void init_command_board_buttons(int x, int y, int offset[2], COMMAND_BUTTON butt
     float height = width * (float)((double)viewportWidth / (double)viewportHeight);
 
     int sprite_sheet_size[2] = {TILE_SPRITE_SHEET_COUNT, TILE_SPRITE_SHEET_COUNT};
-    int sprite_size[2] = {1, 1};
+    int sprite_size[2] = {16, 16};
     vec2 size = {width, height};
 
     float *pos = calloc(3, sizeof(float));

@@ -14,7 +14,7 @@ void update_selection(Entity *select_entity)
     }
 
     Game_Entity *bound_entity_entity_class = bound_entity->entity_class;
-    if (!bound_entity_entity_class->is_selected)
+    if (!bound_entity_entity_class->selectable_component->is_selected)
     {
         remove_entity(select_entity);
         return;

@@ -1,11 +1,10 @@
-#include "resource.h"
+#include "units.h"
 
-#include "../../engine/engine.h"
-#include "../../generic/generic.h"
+#include "../../../engine/engine.h"
+#include "../../../generic/generic.h"
 
-#include "game_entities_internal.h"
-#include "../constants/constants.h"
-#include "components/components.h"
+#include "../game_entities_internal.h"
+#include "../components/components.h"
 
 Game_Entity *create_resource(RESOURCE type, vec3 pos)
 {
@@ -23,6 +22,7 @@ Game_Entity *create_resource(RESOURCE type, vec3 pos)
     /** Resource */
     Game_Entity *resource = create_game_entity(entity);
     add_resource_component(resource, type, 1000);
+    add_selectable_component(resource, _UNIT_TYPE);
 
     /** Render Item */
     Render_Item *render_item = get_render_item(0, RENDER_ITEM_VERTICAL_QUAD, SHADER_DEFAULT, "assets/props/Props_Sheet.png");

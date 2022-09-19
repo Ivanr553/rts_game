@@ -249,7 +249,7 @@ Entity *move_to(Entity *entity, vec3 pos)
     /** Update unit rotation when moving in different directions */
     // entity->render_item->rotation[1] = M_PI;
 
-    printf("Moving unit to: %f %f %f\n", pos[0], pos[1], pos[2]);
+    // printf("Moving unit to: %f %f %f\n", pos[0], pos[1], pos[2]);
     return entity;
 }
 

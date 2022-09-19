@@ -23,14 +23,11 @@ pos[0] = 0;
 pos[1] = 0;
 
 
-1. redistribute the entities for the render item
+Selection Icons
+ - A list of entities that are selected
+ - As the list is created, we create a selection icon entity that corresponds to it
+ - When a new list is created, wipe the old entities and create new ones
 
-
-Entity
- - Bound Entities = array of bound entities to a unit
- - Bound entities are added and then get managed by the parent entity
- - How do we remove the bound entities? -> How do we know which one is which??
-    - Create a map with strings and values is the entity;
 
 =============================================================   E N G I N E   R E F A C T O R   ==========================================================================
 General notes and concepts:

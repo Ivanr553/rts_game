@@ -22,3 +22,6 @@ void add_resource_component(Game_Entity *unit_entity, RESOURCE resource_type, in
 
 /** UI */
 void add_ui_component(Game_Entity *game_entity, void (*on_click)());
+
+/** Selection */
+void add_selectable_component(Game_Entity *game_entity, UNIT_TYPE unit_type);
