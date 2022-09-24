@@ -35,6 +35,7 @@ typedef enum render_item_type
     RENDER_ITEM_CUBE,
     RENDER_ITEM_LINE,
     RENDER_ITEM_CIRCLE,
+    RENDER_ITEM_QUAD_WITH_POINTS
 } RENDER_ITEM_TYPE;
 
 typedef struct vertex
@@ -57,7 +58,6 @@ typedef struct texture_data
 
 typedef struct sprite_sheet_data
 {
-    int offset[2];
     int sprite_size[2];
     int sprite_sheet_size[2];
 } Sprite_Sheet_Data;
@@ -131,7 +131,7 @@ typedef struct render_item
 } Render_Item;
 
 /** TODO: Organize */
-Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color);
+Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color, int offset[2], float points[12]);
 Render_Item *get_render_item(short make_new, RENDER_ITEM_TYPE type, int shader_position, char *texture_file_path);
 Render_Item *add_render_item(Render_Item *render_item);
 void append_item_to_render_item(Render_Item *render_item, void *entity);
@@ -139,13 +139,14 @@ void remove_item_from_render_item(Render_Item *render_item, void *entity);
 void update_render_item(void *entity);
 
 float *get_uvs(int *offset, int *sprite_sheet_count, int *sprite_size);
-Render_Item *create_quad(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 size, int is_vertical);
+Render_Item *create_quad(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 size, int is_vertical, int offset[2]);
 Render_Item *create_cube(Render_Item *render_item);
 Render_Item *create_line(Render_Item *render_item, float vertices[6]);
 Vertex **create_circle_vertex_array(float x, float y, float z, float diameter, int vertices, vec4 color);
 Render_Item *create_circle(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 size, int vertices);
 Render_Item *create_rect(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 size);
 Vertex *create_rect_vertices(float x, float y, float z, vec2 size);
+Vertex *create_quad_vertices_from_points(float x, float y, float z, float points[12], float *uvs);
 
 Vertex create_vertex(vec3 pos, vec2 uvs, vec4 color, vec3 normal);
 Vertex *create_quad_vertices(float x, float y, float z, vec2 size, float *uvs);
@@ -154,7 +155,7 @@ Vertex *create_vertical_quad_vertices(float x, float y, float z, vec2 size, floa
 Render_Item *create_render_item(RENDER_ITEM_TYPE type);
 Render_Item *add_shader(Render_Item *render_item, int shader_position);
 Render_Item *add_texture(Render_Item *render_item, char *file_path);
-Render_Item *add_sprite_sheet_data(Render_Item *render_item, int offset[2], int sprite_size[2], int sprite_sheet_size[2]);
+Render_Item *add_sprite_sheet_data(Render_Item *render_item, int sprite_size[2], int sprite_sheet_size[2]);
 
 void bind_render_item_data(Render_Item *render_item);
 

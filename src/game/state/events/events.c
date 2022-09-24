@@ -3,9 +3,27 @@
 #include "events.h"
 #include "../game_global.h"
 #include "../../game_entities/game_entities.h"
+#include "../../../main.h"
 
 void handle_events(void)
 {
+
+    move_camera(
+        global.mouse.y == 0 && global.mouse.drag_state != DRAG_STATE_DRAGGING,
+        global.mouse.y == global.render.height - 1 && global.mouse.drag_state != DRAG_STATE_DRAGGING,
+        global.mouse.x == 0 && global.mouse.drag_state != DRAG_STATE_DRAGGING,
+        global.mouse.x == global.render.width - 1 && global.mouse.drag_state != DRAG_STATE_DRAGGING,
+        0,
+        0,
+        0,
+        0);
+
+    if (global.input.f10 == KS_PRESSED || global.input.f10 == KS_HELD)
+    {
+        quit_game();
+        return;
+    }
+
     if (global.mouse.rightButton == KS_PRESSED)
     {
         handle_global_event(GLOBAL_EVENT_MOUSE_RIGHT_BUTTON);
@@ -14,7 +32,16 @@ void handle_events(void)
     {
         handle_global_event(GLOBAL_EVENT_MOUSE_LEFT_BUTTON_DRAG_RELEASE);
     }
-    else if (global.mouse.leftButton == KS_PRESSED || global.mouse.leftButton == KS_HELD)
+    else if (global.mouse.leftButton == KS_PRESSED)
+    {
+        game_global.press_count++;
+
+        if (global.mouse.did_double_click)
+        {
+            printf("Double clicked\n");
+        }
+    }
+    else if (global.mouse.leftButton == KS_HELD)
     {
         game_global.press_count++;
     }
@@ -26,20 +53,6 @@ void handle_events(void)
     else
     {
         game_global.press_count = 0;
-    }
-
-    if (global.input.b == KS_PRESSED)
-    {
-        if (game_global.game_stores.in_game_store.is_placing_building)
-        {
-            game_global.game_stores.in_game_store.is_placing_building = 0;
-            hide_building_selection();
-        }
-        else
-        {
-            game_global.game_stores.in_game_store.is_placing_building = 1;
-            show_building_selection(6, 5);
-        }
     }
 
     if (global.input.one == KS_PRESSED)
@@ -71,6 +84,74 @@ void handle_events(void)
             game_global.game_stores.in_game_store.selected_control_group = CONTROL_SLOT_TWO;
             select_units(game_global.game_stores.in_game_store.control_groups[CONTROL_SLOT_TWO].unit_ids);
         }
+    }
+
+    if(global.input.escape == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_ESCAPE);
+    }
+
+    if (global.input.q == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_1);
+    }
+    if (global.input.w == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_2);
+    }
+    if (global.input.e == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_3);
+    }
+    if (global.input.r == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_4);
+    }
+    if (global.input.t == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_5);
+    }
+
+    if (global.input.a == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_6);
+    }
+    if (global.input.s == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_7);
+    }
+    if (global.input.d == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_8);
+    }
+    if (global.input.f == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_9);
+    }
+    if (global.input.g == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_10);
+    }
+
+    if (global.input.z == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_16);
+    }
+    if (global.input.x == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_17);
+    }
+    if (global.input.c == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_18);
+    }
+    if (global.input.v == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_19);
+    }
+    if (global.input.b == KS_PRESSED)
+    {
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_20);
     }
 };
 
@@ -135,6 +216,12 @@ void handle_global_event(Global_Event event)
         float mouse_pos[3];
         get_mouse_pos_on_map(mouse_pos);
 
+        if(game_global.game_stores.in_game_store.is_placing_building)
+        {
+            place_building(mouse_pos);
+            return;
+        }
+
         Array *selected_units = create_array(SELECTED_UNIT_MAX_COUNT, sizeof(long));
 
         Array *entities = global.render.entities;
@@ -172,14 +259,20 @@ void handle_global_event(Global_Event event)
         float d_left = (float)((double)(global.mouse.drag_start_x * 2) / (double)viewportWidth) - 1;
         float d_top = (float)1 - ((double)(global.mouse.drag_start_y * 2) / (double)viewportHeight);
 
-        float *ray_left_top = get_mouse_ray(d_left, d_top);
+        float *ray_left_bottom = get_mouse_ray(d_left, global.mouse.pos_gl[1]);
         float *ray_right_bottom = get_mouse_ray(global.mouse.pos_gl[0], global.mouse.pos_gl[1]);
+        float *ray_right_top = get_mouse_ray(global.mouse.pos_gl[0], d_top);
+        float *ray_left_top = get_mouse_ray(d_left, d_top);
 
-        float scalar_left_top = (float)((double)-global.camera.position[2] / (double)ray_left_top[2]);
+        float scalar_left_bottom = (float)((double)-global.camera.position[2] / (double)ray_left_bottom[2]);
         float scalar_right_bottom = (float)((double)-global.camera.position[2] / (double)ray_right_bottom[2]);
+        float scalar_right_top = (float)((double)-global.camera.position[2] / (double)ray_right_top[2]);
+        float scalar_left_top = (float)((double)-global.camera.position[2] / (double)ray_left_top[2]);
 
-        float coords_left_top[3] = {global.camera.position[0] + (scalar_left_top * ray_left_top[0]), global.camera.position[1] + (scalar_left_top * ray_left_top[1]), global.camera.position[2] + (scalar_left_top * ray_left_top[2])};
+        float coords_left_bottom[3] = {global.camera.position[0] + (scalar_left_bottom * ray_left_bottom[0]), global.camera.position[1] + (scalar_left_bottom * ray_left_bottom[1]), global.camera.position[2] + (scalar_left_bottom * ray_left_bottom[2])};
         float coords_right_bottom[3] = {global.camera.position[0] + (scalar_right_bottom * ray_right_bottom[0]), global.camera.position[1] + (scalar_right_bottom * ray_right_bottom[1]), global.camera.position[2] + (scalar_right_bottom * ray_right_bottom[2])};
+        float coords_right_top[3] = {global.camera.position[0] + (scalar_right_top * ray_right_top[0]), global.camera.position[1] + (scalar_right_top * ray_right_top[1]), global.camera.position[2] + (scalar_right_top * ray_right_top[2])};
+        float coords_left_top[3] = {global.camera.position[0] + (scalar_left_top * ray_left_top[0]), global.camera.position[1] + (scalar_left_top * ray_left_top[1]), global.camera.position[2] + (scalar_left_top * ray_left_top[2])};
 
         float left = coords_left_top[0];
         float right = coords_right_bottom[0];
@@ -206,7 +299,10 @@ void handle_global_event(Global_Event event)
                 short within_x = 0;
                 short within_y = 0;
 
-                if ((entity->pos[0] >= left) && (entity->pos[0] <= right))
+                float *left_point = get_point_on_line(entity->pos[0], entity->pos[1], coords_left_bottom[0], coords_left_bottom[1], coords_left_top[0], coords_left_top[1]);
+                float *right_point = get_point_on_line(entity->pos[0], entity->pos[1], coords_right_bottom[0], coords_right_bottom[1], coords_right_top[0], coords_right_top[1]);
+
+                if ((entity->pos[0] >= left_point[0]) && (entity->pos[0] <= right_point[0]))
                 {
                     // printf("Within x bound\n");
                     within_x = 1;

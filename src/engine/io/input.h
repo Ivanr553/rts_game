@@ -29,11 +29,12 @@ typedef struct mouse_state
     int drag_start_x;
     int y;
     int drag_start_y;
+    int time_since_last_click;
+    short did_double_click;
     DRAG_STATE drag_state;
     vec3 pos_gl;
     Key_State leftButton;
     Key_State rightButton;
-
 } Mouse_State;
 
 typedef struct input_state
@@ -49,6 +50,9 @@ typedef struct input_state
     Key_State space;
     Key_State tab;
 
+    /** Function Keys */
+    Key_State f10;
+
     /** Num keys */
     Key_State one;
     Key_State two;
@@ -56,6 +60,23 @@ typedef struct input_state
     /** Char */
     Key_State a;
     Key_State b;
+
+    Key_State q;
+    Key_State w;
+    Key_State e;
+    Key_State r;
+    Key_State t;
+
+    Key_State s;
+    Key_State d;
+    Key_State f;
+    Key_State g;
+
+    Key_State z;
+    Key_State x;
+    Key_State c;
+    Key_State v;
+
 } Input_State;
 
 void input_init(void);

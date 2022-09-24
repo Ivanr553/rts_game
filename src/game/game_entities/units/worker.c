@@ -5,15 +5,16 @@
 
 #include "../game_entities_internal.h"
 #include "../components/components.h"
+#include "../../state/state.h"
 
-char *get_worker_data(UNIT_TYPE unit_type)
+char *get_worker_data(GAME_ENTITY_TYPE unit_type)
 {
     switch (unit_type)
     {
-    case UNIT_TYPE_MAX:
+    case GAME_ENTITY_TYPE_MAX:
         return "assets/units/MAX.png";
 
-    case UNIT_TYPE_ALF:
+    case GAME_ENTITY_TYPE_ALF:
         return "assets/units/Alf.png";
 
     default:
@@ -21,10 +22,9 @@ char *get_worker_data(UNIT_TYPE unit_type)
     }
 }
 
-Game_Entity *create_worker(vec3 pos, UNIT_TYPE unit_type)
+Game_Entity *create_worker(vec3 pos, GAME_ENTITY_TYPE unit_type)
 {
     /** Initializing data */
-    int offset[2] = {1, 1};
     int sprite_sheet_size[2] = {6, 2};
     int sprite_size[2] = {64, 64};
     vec2 size = {1, 1};
@@ -32,12 +32,18 @@ Game_Entity *create_worker(vec3 pos, UNIT_TYPE unit_type)
     /** Entity */
     Entity *entity = create_entity(NULL, pos);
     entity->entity_class_type = ENTITY_CLASS_UNIT;
-    entity->update_entity = update_worker;
+    // entity->update_entity = update_worker;
+    entity->offset[0] = 1;
+    entity->offset[1] = 1;
+    entity->size[0] = size[0];
+    entity->size[1] = size[1];
 
     /** Base Class*/
-    Game_Entity *worker = create_game_entity(entity);
+    Game_Entity *worker = create_game_entity(entity, game_global.game_stores.in_game_store.player->player_slot);
     add_selectable_component(worker, unit_type);
-    add_harvester_component(worker, 100, 0.3);
+    add_harvester_component(worker, 200, 0.3);
+    add_combat_component(worker, 50, 0, 0, WEAPON_TYPE_MELEE, _WEAPON_TYPE);
+    add_builder_component(worker, 1);
 
     add_movement_data(entity, (vec3){DEFAULT_UNIT_MAX_VELOCITY, DEFAULT_UNIT_MAX_VELOCITY, DEFAULT_UNIT_MAX_VELOCITY});
     add_collision_data(entity, 0.3);
@@ -53,8 +59,8 @@ Game_Entity *create_worker(vec3 pos, UNIT_TYPE unit_type)
         add_worker_animations(entity);
 
         /** Render Item */
-        add_sprite_sheet_data(render_item, offset, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, size, NULL, NULL);
+        add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
+        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
         bind_render_item_data(render_item);
     }
 
@@ -87,40 +93,7 @@ void add_worker_animations(Entity *entity)
     add_animation(entity->render_item, walking_animation);
 };
 
-void handle_selection(Game_Entity *worker)
-{
-    Entity *select_entity = get_bound_entity(worker->entity, BOUND_ENTITY_SELECTOR);
-
-    if (worker->selectable_component->is_selected == 1)
-    {
-        if (!select_entity)
-        {
-            select_entity = create_entity(worker->entity, worker->entity->pos);
-            Render_Item *render_item = get_render_item(1, RENDER_ITEM_CIRCLE, SHADER_COLOR, EMPTY_TEXTURE);
-            append_item_to_render_item(render_item, select_entity);
-            init_render_item(render_item, (vec3){worker->entity->pos[0], worker->entity->pos[1], 0.05}, (vec2){0.5, 0.5}, NULL, (vec4){0, 0, 0, 1});
-            bind_render_item_data(render_item);
-
-            select_entity->render_item = render_item;
-            select_entity->entity_class_type = 100;
-            add_entity(select_entity);
-            add_bound_entity(worker->entity, BOUND_ENTITY_SELECTOR, select_entity);
-        }
-
-        if (worker->entity->render_item->should_update)
-        {
-            select_entity->pos[0] = worker->entity->pos[0];
-            select_entity->pos[1] = worker->entity->pos[1];
-            select_entity->pos[2] = 0.05;
-            select_entity->render_item->should_update = 1;
-            select_entity->render_item->updated = 1;
-        }
-    }
-}
-
 void update_worker(Entity *entity)
 {
     Game_Entity *worker = entity->entity_class;
-
-    // handle_selection(worker);
 };

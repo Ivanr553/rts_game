@@ -5,6 +5,7 @@
 #include "../../models/models.h"
 #include "../../../generic/generic.h"
 #include "../../game_entities/game_entities.h"
+#include "../unit_management/unit_management.h"
 
 void initialize_in_game_store(void)
 {
@@ -13,6 +14,8 @@ void initialize_in_game_store(void)
     game_global.game_stores.in_game_store.selected_control_group = CONTROL_SLOT_ONE;
     game_global.game_stores.in_game_store.selected_units_by_id = create_array(SELECTED_UNIT_MAX_COUNT, sizeof(long));
     game_global.game_stores.in_game_store.selected_unit_icon_ids = create_array(SELECTED_UNIT_MAX_COUNT, sizeof(long));
+    game_global.game_stores.in_game_store.command_button_ids = create_array(COMMAND_BOARD_BUTTON_COUNT, sizeof(long));
+    game_global.game_stores.in_game_store.command_board_info_ids = create_array(COMMAND_BOARD_INFO_COUNT, sizeof(long));
 
     create_control_groups();
 };
@@ -33,46 +36,6 @@ void create_control_groups()
 void control_group_add_unit(Control_Group_Slot slot, long id)
 {
     append_array(game_global.game_stores.in_game_store.control_groups[slot].unit_ids, &id);
-};
-
-void select_units(Array *entity_id_array)
-{
-    if (!entity_id_array || entity_id_array->len == 0)
-    {
-        printf("Empty entity_id_array when trying to select units\n");
-        return;
-    }
-
-    Array *unselected_units = game_global.game_stores.in_game_store.selected_units_by_id;
-
-    for (int i = 0; i < unselected_units->len; i++)
-    {
-        long entity_id = *((long *)get_item_from_array(unselected_units, i));
-        Entity *entity = get_entity_by_id(entity_id);
-        Game_Entity *game_entity = entity->entity_class;
-
-        if (game_entity->selectable_component)
-        {
-            game_entity->selectable_component->is_selected = 0;
-        }
-    }
-
-    for (int i = 0; i < entity_id_array->len; i++)
-    {
-        long entity_id = *((long *)get_item_from_array(entity_id_array, i));
-        Entity *entity = get_entity_by_id(entity_id);
-        Game_Entity *game_entity = entity->entity_class;
-
-        if (game_entity->selectable_component)
-        {
-            game_entity->selectable_component->is_selected = 1;
-
-            create_selection(game_entity->entity);
-        }
-    }
-
-    game_global.game_stores.in_game_store.selected_units_by_id = entity_id_array;
-    generate_selection_icons();
 };
 
 short handle_right_click_unit_interaction(void)
@@ -96,6 +59,31 @@ short handle_right_click_unit_interaction(void)
         {
             Game_Entity *clicked_game_entity = entity->entity_class;
 
+            if (clicked_game_entity->player_slot != game_global.game_stores.in_game_store.player->player_slot)
+            {
+                Array *entity_ids = game_global.game_stores.in_game_store.selected_units_by_id;
+                if (entity_ids->len)
+                {
+                    for (int e = 0; e < entity_ids->len; e++)
+                    {
+                        long entity_id = *((long *)get_item_from_array(entity_ids, e));
+                        Entity *selected_entity = get_entity_by_id(entity_id);
+                        if (!selected_entity)
+                        {
+                            continue;
+                        }
+                        Game_Entity *selected_unit_game_entity = selected_entity->entity_class;
+
+                        if (selected_unit_game_entity->combat_component)
+                        {
+                            selected_unit_game_entity->combat_component->target_entity = clicked_game_entity;
+                            selected_unit_game_entity->combat_component->is_attacking = 1;
+                        }
+                    }
+                }
+                return 1;
+            }
+
             if (clicked_game_entity->resource_component)
             {
                 Array *entity_ids = game_global.game_stores.in_game_store.selected_units_by_id;
@@ -105,6 +93,10 @@ short handle_right_click_unit_interaction(void)
                     {
                         long entity_id = *((long *)get_item_from_array(entity_ids, e));
                         Entity *selected_entity = get_entity_by_id(entity_id);
+                        if (!selected_entity)
+                        {
+                            continue;
+                        }
                         Game_Entity *selected_unit_game_entity = selected_entity->entity_class;
 
                         if (selected_unit_game_entity->harvester_component)

@@ -162,15 +162,29 @@ void render(void)
                     render_item_ptr->updated = 0;
                 }
 
-                if (render_item.indices_len == 0)
+                switch (render_item.type)
                 {
-                    // printf("Vertices_len: %d\n", render_item.vertices_len);
+                case RENDER_ITEM_QUAD:
+                case RENDER_ITEM_VERTICAL_QUAD:
+                    if (render_item.indices_len == 0)
+                    {
+                        glLineWidth(3);
+                        glDrawArrays(GL_LINE_LOOP, 0, render_item.vertices_len / render_item.vertex_stride);
+                    }
+                    else
+                    {
+                        glDrawElements(GL_TRIANGLES, render_item.indices_len, GL_UNSIGNED_INT, NULL);
+                    }
+                    glDrawElements(GL_TRIANGLES, render_item.indices_len, GL_UNSIGNED_INT, NULL);
+                    break;
+
+                case RENDER_ITEM_CIRCLE:
+                case RENDER_ITEM_RECT:
+                case RENDER_ITEM_LINE:
+                case RENDER_ITEM_QUAD_WITH_POINTS:
                     glLineWidth(3);
                     glDrawArrays(GL_LINE_LOOP, 0, render_item.vertices_len / render_item.vertex_stride);
-                }
-                else
-                {
-                    glDrawElements(GL_TRIANGLES, render_item.indices_len, GL_UNSIGNED_INT, NULL);
+                    break;
                 }
 
                 glBindTexture(GL_TEXTURE_2D, 0);

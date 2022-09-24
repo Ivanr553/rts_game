@@ -30,7 +30,7 @@ void *add_entity(Entity *entity)
     if (!entity)
     {
         printf("Attempted to add NULL entity\n");
-        return;
+        return NULL;
     }
 
     if (!entity->render_item->is_static_object)
@@ -54,7 +54,7 @@ void *add_entity(Entity *entity)
         return NULL;
     }
 
-    add_entity_to_map(entity, entity->id);
+    add_entity_to_map(entity);
 
     // printf("Finished adding entity\n");
     return entity;
@@ -97,7 +97,6 @@ void remove_entity(Entity *entity)
     }
     else
     {
-        printf("Removed here\n");
         Render_Item *render_item = entity->render_item;
         remove_items_from_array_and_shift(render_item->entity_ids, vbo_pos, 1);
 
@@ -155,13 +154,9 @@ void remove_entity(Entity *entity)
         Entity *_entity = *((Entity **)get_item_from_array(global.render.entities, i));
         _entity->entity_array_pos = i;
     }
-    remove_entity_from_map(entity, entity->id);
-    removed_entity_count++;
+    remove_entity_from_map(entity);
 
-    for (int i = 0; i < entity->bound_entity_map->map_values->len; i++)
-    {
-    }
-
+    memset(entity, 0, sizeof(Entity));
     free(entity);
 }
 
@@ -199,35 +194,13 @@ void *add_bound_entity(Entity *entity, char *bound_entity_name, Entity *bound_en
     return set_value_in_map(entity->bound_entity_map, bound_entity_name, bound_entity);
 }
 
-Entity *get_bound_entity(Entity *entity, char *bound_entity_name)
-{
-    if (strlen(bound_entity_name) == 0)
-    {
-        printf("Empty bound entity name when trying to get bound_entity\n");
-        return NULL;
-    }
-
-    Entity *bound_entity = get_value_from_map(entity->bound_entity_map, bound_entity_name);
-    if (!bound_entity)
-    {
-        // printf("No bound entity found with name: %s\n", bound_entity_name);
-        return NULL;
-    }
-
-    return bound_entity;
-}
-
-void *remove_bound_entity(Entity *entity, char *bound_entity_name)
-{
-    Entity *bound_entity = get_value_from_map(entity->bound_entity_map, bound_entity_name);
-    remove_entity(bound_entity);
-
-    printf("Removing bound entity\n");
-    remove_value_in_map(entity->bound_entity_map, bound_entity_name);
-}
-
 Entity *get_entity_by_id(long id)
 {
+    if (id == 0)
+    {
+        return NULL;
+    }
+
     Entity *entity = get_value_from_map(global.render.entity_map._entity_map, id);
     return entity;
 }
@@ -237,7 +210,7 @@ Entity *move_to(Entity *entity, vec3 pos)
     if (!entity)
     {
         printf("Attempted to move NULL entity\n");
-        return;
+        return NULL;
     }
 
     entity->should_move_to_pos = 1;
@@ -278,7 +251,7 @@ Entity *set_animation(Entity *entity, char *animation_name)
     if (!entity)
     {
         printf("Attempted to set animation for NULL entity\n");
-        return;
+        return NULL;
     }
 
     // printf("Setting animation\n");
@@ -304,7 +277,7 @@ Entity *set_animation(Entity *entity, char *animation_name)
 
     entity->animation_data->current_animation = animation;
     entity->animation_data->current_frame = 0;
-    entity->render_item->sprite_sheet_data->offset[1] = animation->animation_pos + 1;
+    entity->offset[1] = animation->animation_pos + 1;
     // printf("Finished Setting animation\n");
 
     return entity;
@@ -324,7 +297,7 @@ Entity *create_line_entity(vec3 pos, float vertices[6], vec4 color)
 
     vec2 size = {1, 1};
 
-    init_render_item(render_item, pos, size, NULL, color);
+    init_render_item(render_item, pos, size, NULL, color, NULL, NULL);
     create_line(render_item, vertices);
     bind_render_item_data(render_item);
 

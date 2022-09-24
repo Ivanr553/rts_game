@@ -40,7 +40,8 @@ void *get_item_from_array(Array *array, size_t index)
 {
     if (index >= array->capacity)
     {
-        ERROR_RETURN(NULL, "Index out of bounds\n");
+        printf("Index out of bounds\n");
+        return NULL;
     }
 
     void *value = (u8 *)array->list + index * array->item_size;
@@ -80,7 +81,7 @@ void *update_item(Array *array, size_t index, void *item)
 void *realocate_array(Array *array)
 {
     array->capacity *= 2;
-    printf("Reallocating array to size: %d with capacity: %d\n", array->capacity * array->item_size, array->capacity);
+    printf("Reallocating array to size: %zd with capacity: %zd\n", array->capacity * array->item_size, array->capacity);
     Array *new_array = realloc(array->list, array->capacity * array->item_size);
 
     if (!new_array)

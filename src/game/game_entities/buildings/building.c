@@ -9,19 +9,22 @@ char *building = "assets/buildings/Summoning-Circle.png";
 void create_arch(float *pos)
 {
     /** Initializing data */
-    int offset[2] = {3, 1};
     int sprite_sheet_size[2] = {3, 1};
     int sprite_size[2] = {128, 128};
     float size[2] = {3, 3};
 
     /** Entity */
     Entity *entity = create_entity(building, pos);
+    entity->offset[0] = 3;
+    entity->offset[1] = 1;
+    entity->size[0] = size[0];
+    entity->size[1] = size[1];
 
     /** Render Item */
     Render_Item *render_item = get_render_item(1, RENDER_ITEM_VERTICAL_QUAD, SHADER_DEFAULT, "assets/buildings/Summoning-Circle.png");
     append_item_to_render_item(render_item, entity);
-    add_sprite_sheet_data(render_item, offset, sprite_size, sprite_sheet_size);
-    init_render_item(render_item, pos, size, NULL, NULL);
+    add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
+    init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
     bind_render_item_data(render_item);
 
     add_entity(entity);
@@ -37,11 +40,17 @@ Game_Entity *create_building(float *pos, float *size, BUILDING_TYPE building_typ
     /** Entity Class */
     Game_Entity *building = calloc(1, sizeof(Game_Entity));
     add_building_component(building, building_type);
+    add_selectable_component(building, GAME_ENTITY_TYPE_BASE);
 
     /** Entity */
     Entity *entity = create_entity(building, pos);
     entity->entity_class_type = ENTITY_CLASS_BUILDING;
     entity->entity_class = building;
+    entity->is_fixed_object = 1;
+    entity->offset[0] = 1;
+    entity->offset[1] = 1;
+    entity->size[0] = size[0];
+    entity->size[1] = size[1];
     add_collision_data(entity, size[0] / 2);
 
     /** Render Item */
@@ -51,10 +60,8 @@ Game_Entity *create_building(float *pos, float *size, BUILDING_TYPE building_typ
     /** Only perform for the first entity */
     if (entity->vbo_pos == 0)
     {
-        render_item->is_static_object = 1;
-
-        add_sprite_sheet_data(render_item, offset, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, size, NULL, NULL);
+        add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
+        init_render_item(render_item, pos, entity->size, NULL, NULL, offset, NULL);
         bind_render_item_data(render_item);
     }
 

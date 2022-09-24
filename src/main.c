@@ -13,28 +13,10 @@
 
 static bool should_quit = false;
 
-static void input_handle(void)
+void quit_game(void)
 {
-    const u8 *keyboard_state = SDL_GetKeyboardState(NULL);
-
-    u8 e_key_state = keyboard_state[SDL_SCANCODE_E];
-    u8 q_key_state = keyboard_state[SDL_SCANCODE_Q];
-
-    move_camera(
-        global.input.up == KS_PRESSED || global.input.up == KS_HELD || global.mouse.y == 0,
-        global.input.down == KS_PRESSED || global.input.down == KS_HELD || global.mouse.y == global.render.height - 1,
-        global.input.left == KS_PRESSED || global.input.left == KS_HELD || global.mouse.x == 0,
-        global.input.right == KS_PRESSED || global.input.right == KS_HELD || global.mouse.x == global.render.width - 1,
-        0,
-        0,
-        q_key_state == KS_HELD || q_key_state == KS_PRESSED,
-        e_key_state == KS_HELD || e_key_state == KS_PRESSED);
-
-    if (global.input.escape == KS_PRESSED || global.input.escape == KS_HELD)
-    {
-        should_quit = true;
-    }
-};
+    should_quit = true;
+}
 
 void test()
 {
@@ -182,7 +164,6 @@ int main(void)
 
         // printf("Starting input handle\n");
         input_update();
-        input_handle();
 
         game_loop();
         // printf("Finished game loop\n");

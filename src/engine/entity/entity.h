@@ -39,6 +39,7 @@ typedef struct entity
     float unit_radius;
     short can_collide;
     short has_collided;
+    short is_fixed_object;
 
     /** Animation */
     Animation_Data *animation_data;
@@ -47,6 +48,8 @@ typedef struct entity
     int vbo_pos;
     vec2 size;
     Render_Item *render_item;
+    int offset[2];
+    float points[12];
 
     /** Bound entities */
     Map *bound_entity_map;
@@ -68,8 +71,6 @@ void add_entity_to_map(Entity *entity);
 void remove_entity_from_map(Entity *entity);
 Entity *get_entity_by_id(long id);
 void *add_bound_entity(Entity *entity, char *bound_entity_name, Entity *bound_entity);
-Entity *get_bound_entity(Entity *entity, char *bound_entity_name);
-void *remove_bound_entity(Entity *entity, char *bound_entity_name);
 
 /** Movement */
 Entity *move_to(Entity *entity, vec3 pos);

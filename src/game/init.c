@@ -36,12 +36,12 @@ void initialize_map(void)
 void initialize_game(void)
 {
     initialize_state();
+    init_player(0, FACTION_ALCHEMISTS);
     initialize_map();
     init_command_board();
-    init_player(0, FACTION_ALCHEMISTS);
     init_player_resources();
 
-    int test_worker_count = 30;
+    int test_worker_count = 10;
     time_t t;
     srand((unsigned)time(&t));
 
@@ -49,12 +49,16 @@ void initialize_game(void)
     {
         int control_group = rand() % 2;
 
-        float x_deviation = game_global.game_stores.in_game_store.map->start_x + rand() % 10;
-        float y_deviation = game_global.game_stores.in_game_store.map->start_y + rand() % 10;
+        float x_deviation = game_global.game_stores.in_game_store.map->start_x + rand() % 20;
+        float y_deviation = game_global.game_stores.in_game_store.map->start_y + rand() % 20;
 
-        UNIT_TYPE unit_type = i % 2 ? UNIT_TYPE_MAX : UNIT_TYPE_ALF;
+        GAME_ENTITY_TYPE unit_type = i % 2 ? GAME_ENTITY_TYPE_MAX : GAME_ENTITY_TYPE_ALF;
 
         Game_Entity *worker = create_worker((vec3){x_deviation, y_deviation, DEFAULT_UNIT_Z}, unit_type);
+        if (unit_type == GAME_ENTITY_TYPE_ALF)
+        {
+            worker->player_slot = 1;
+        }
 
         control_group_add_unit(control_group, worker->entity->id);
     }

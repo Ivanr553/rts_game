@@ -32,7 +32,7 @@ typedef struct shader_data
 
 typedef struct texture_group
 {
-    GLuint texture_id;
+    GLuint *texture_id;
     Array *render_items;
 } Texture_Group;
 

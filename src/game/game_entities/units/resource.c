@@ -5,11 +5,27 @@
 
 #include "../game_entities_internal.h"
 #include "../components/components.h"
+#include "../../state/state.h"
+
+void update_resource(Entity *entity)
+{
+    Game_Entity *game_entity = entity->entity_class;
+    Component_Resource *resource_component = game_entity->resource_component;
+
+    if (resource_component->recently_harvested_count > 0)
+    {
+        resource_component->recently_harvested_count--;
+
+        if (resource_component->recently_harvested_count == 0)
+        {
+            resource_component->recently_harvested_by_id = 0;
+        }
+    }
+}
 
 Game_Entity *create_resource(RESOURCE type, vec3 pos)
 {
     /** Initializing data */
-    int offset[2] = {1, 1};
     int sprite_sheet_size[2] = {1, 1};
     int sprite_size[2] = {64, 64};
     vec2 size = {1, 1};
@@ -17,12 +33,18 @@ Game_Entity *create_resource(RESOURCE type, vec3 pos)
     /** Entity */
     Entity *entity = create_entity(NULL, pos);
     entity->entity_class_type = ENTITY_CLASS_RESOURCE;
+    entity->update_entity = update_resource;
+    entity->is_fixed_object = 1;
+    entity->offset[0] = 1;
+    entity->offset[1] = 1;
+    entity->size[0] = size[0];
+    entity->size[1] = size[1];
     add_collision_data(entity, 0.3);
 
     /** Resource */
-    Game_Entity *resource = create_game_entity(entity);
+    Game_Entity *resource = create_game_entity(entity, game_global.game_stores.in_game_store.player->player_slot);
     add_resource_component(resource, type, 1000);
-    add_selectable_component(resource, _UNIT_TYPE);
+    add_selectable_component(resource, _GAME_ENTITY_TYPE);
 
     /** Render Item */
     Render_Item *render_item = get_render_item(0, RENDER_ITEM_VERTICAL_QUAD, SHADER_DEFAULT, "assets/props/Props_Sheet.png");
@@ -31,10 +53,8 @@ Game_Entity *create_resource(RESOURCE type, vec3 pos)
     /** Only perform for the first entity */
     if (entity->vbo_pos == 0)
     {
-        render_item->is_static_object = 1;
-
-        add_sprite_sheet_data(render_item, offset, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, size, DEFAULT_UNIT_ROTATION, NULL);
+        add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
+        init_render_item(render_item, pos, entity->size, DEFAULT_UNIT_ROTATION, NULL, entity->offset, NULL);
         bind_render_item_data(render_item);
     }
 

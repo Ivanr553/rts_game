@@ -14,7 +14,7 @@
 
 long count = 1;
 
-float *get_uvs(int *offset, int *sprite_sheet_count, int *sprite_size)
+float *get_uvs(int offset[2], int *sprite_sheet_count, int *sprite_size)
 {
     /** left, right, bottom, top */
     float *uvs = calloc(4, sizeof(float));
@@ -92,6 +92,31 @@ Vertex *create_rect_vertices(float x, float y, float z, vec2 size)
     Vertex vertex_bottom_right = create_vertex((vec3){right_pos, bottom_pos, z}, NULL, NULL, NULL);
     Vertex vertex_top_right = create_vertex((vec3){right_pos, top_pos, z}, NULL, NULL, NULL);
     Vertex vertex_top_left = create_vertex((vec3){left_pos, top_pos, z}, NULL, NULL, NULL);
+
+    vertices[0] = vertex_bottom_left;
+    vertices[1] = vertex_bottom_right;
+    vertices[2] = vertex_top_right;
+    vertices[3] = vertex_top_left;
+
+    return vertices;
+};
+
+Vertex *create_quad_vertices_from_points(float x, float y, float z, float points[12], float *uvs)
+{
+    Vertex *vertices = calloc(4, sizeof(Vertex));
+
+    vec4 color = {0, 0, 0, 0};
+    vec3 normal = {0, 0, 1};
+
+    float left = uvs[0];
+    float right = uvs[1];
+    float bottom = uvs[2];
+    float top = uvs[3];
+
+    Vertex vertex_bottom_left = create_vertex((vec3){points[0], points[1], points[2]}, (vec2){left, bottom}, color, normal);
+    Vertex vertex_bottom_right = create_vertex((vec3){points[3], points[4], points[5]}, (vec2){right, bottom}, color, normal);
+    Vertex vertex_top_right = create_vertex((vec3){points[6], points[7], points[8]}, (vec2){right, top}, color, normal);
+    Vertex vertex_top_left = create_vertex((vec3){points[9], points[10], points[11]}, (vec2){left, top}, color, normal);
 
     vertices[0] = vertex_bottom_left;
     vertices[1] = vertex_bottom_right;
@@ -243,9 +268,70 @@ Render_Item *create_rect(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 s
     return render_item;
 };
 
-Render_Item *create_quad(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 size, int is_vertical)
+Render_Item *create_quad_from_points(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 size, int is_vertical, int offset[2], float points[12])
 {
-    float *uvs = get_uvs(render_item->sprite_sheet_data->offset, render_item->sprite_sheet_data->sprite_sheet_size, render_item->sprite_sheet_data->sprite_size);
+    float *uvs = get_uvs(offset, render_item->sprite_sheet_data->sprite_sheet_size, render_item->sprite_sheet_data->sprite_size);
+
+    Vertex *quad_vertices;
+    if (!points)
+    {
+        quad_vertices = create_quad_vertices(pos[0], pos[1], pos[2], size, uvs);
+    }
+    else
+    {
+        quad_vertices = create_quad_vertices_from_points(pos[0], pos[1], pos[2], points, uvs);
+    }
+
+    int positional_vertices_index = 0;
+    int quad_vertex_amount = 4;
+    for (int i = 0; i < quad_vertex_amount; i++)
+    {
+        Vertex vertex = quad_vertices[i];
+        int vertex_offset = vbo_pos * (quad_vertex_amount * render_item->vertex_stride);
+        int b = i * sizeof(vertex) / quad_vertex_amount;
+        int c = 0;
+
+        /** POS */
+        render_item->vertices[vertex_offset + b + c++] = vertex.pos[0];
+        render_item->vertices[vertex_offset + b + c++] = vertex.pos[1];
+        render_item->vertices[vertex_offset + b + c++] = vertex.pos[2];
+
+        render_item->positional_vertices[positional_vertices_index++] = vertex.pos[0];
+        render_item->positional_vertices[positional_vertices_index++] = vertex.pos[1];
+        render_item->positional_vertices[positional_vertices_index++] = vertex.pos[2];
+
+        /** UVS */
+        render_item->vertices[vertex_offset + b + c++] = vertex.uvs[0];
+        render_item->vertices[vertex_offset + b + c++] = vertex.uvs[1];
+
+        /** COLOR */
+        render_item->vertices[vertex_offset + b + c++] = vertex.color[0];
+        render_item->vertices[vertex_offset + b + c++] = vertex.color[1];
+        render_item->vertices[vertex_offset + b + c++] = vertex.color[2];
+        render_item->vertices[vertex_offset + b + c++] = vertex.color[3];
+
+        /** NORMAL */
+        render_item->vertices[vertex_offset + b + c++] = vertex.normal[0];
+        render_item->vertices[vertex_offset + b + c++] = vertex.normal[1];
+        render_item->vertices[vertex_offset + b + c++] = vertex.normal[2];
+    }
+
+    int default_indices[6] = {0, 1, 2, 2, 3, 0};
+    for (int i = 0; i < DEFAULT_QUAD_INDICES_LEN; i++)
+    {
+        int index_offset = vbo_pos * DEFAULT_QUAD_INDICES_LEN;
+        render_item->indices[index_offset + i] = default_indices[i] + (vbo_pos * quad_vertex_amount);
+    }
+
+    free(quad_vertices);
+    free(uvs);
+
+    return render_item;
+}
+
+Render_Item *create_quad(Render_Item *render_item, vec3 pos, int vbo_pos, vec2 size, int is_vertical, int offset[2])
+{
+    float *uvs = get_uvs(offset, render_item->sprite_sheet_data->sprite_sheet_size, render_item->sprite_sheet_data->sprite_size);
 
     Vertex *quad_vertices;
     if (is_vertical)
@@ -415,7 +501,7 @@ Render_Item *add_texture(Render_Item *render_item, char *file_path)
     return render_item;
 };
 
-Render_Item *add_sprite_sheet_data(Render_Item *render_item, int offset[2], int sprite_size[2], int sprite_sheet_size[2])
+Render_Item *add_sprite_sheet_data(Render_Item *render_item, int sprite_size[2], int sprite_sheet_size[2])
 {
     if (!render_item)
     {
@@ -425,17 +511,11 @@ Render_Item *add_sprite_sheet_data(Render_Item *render_item, int offset[2], int 
 
     render_item->sprite_sheet_data = calloc(1, sizeof(Sprite_Sheet_Data));
 
-    render_item->sprite_sheet_data->offset[0] = offset[0];
-    render_item->sprite_sheet_data->offset[1] = offset[1];
-
     render_item->sprite_sheet_data->sprite_size[0] = sprite_size[0];
     render_item->sprite_sheet_data->sprite_size[1] = sprite_size[1];
 
     render_item->sprite_sheet_data->sprite_sheet_size[0] = sprite_sheet_size[0];
     render_item->sprite_sheet_data->sprite_sheet_size[1] = sprite_sheet_size[1];
-
-    // render_item->size[0] = sprite_size[0] * sprite_sheet_size[0];
-    // render_item->size[1] = sprite_size[1] * sprite_sheet_size[1];
 
     return render_item;
 };
@@ -464,15 +544,9 @@ Render_Item *add_animation(Render_Item *render_item, Animation *animation)
     return render_item;
 };
 
-Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color)
+Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color, int offset[2], float points[12])
 {
     // printf("Initializing item\n");
-
-    if (size)
-    {
-        render_item->size[0] = size[0];
-        render_item->size[1] = size[1];
-    }
 
     if (rotation)
     {
@@ -510,7 +584,7 @@ Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, v
         render_item->indices = calloc(DEFAULT_QUAD_INDICES_LEN, sizeof(u32));
         render_item->indices_len = DEFAULT_QUAD_INDICES_LEN;
         render_item->index_stride = DEFAULT_QUAD_INDICES_LEN;
-        create_quad(render_item, pos, 0, render_item->size, 0);
+        create_quad(render_item, pos, 0, size, 0, offset);
         break;
     case RENDER_ITEM_VERTICAL_QUAD:
         render_item->vertices = calloc(DEFAULT_QUAD_VERTICES_LEN, sizeof(f32));
@@ -521,21 +595,33 @@ Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, v
         render_item->indices = calloc(DEFAULT_QUAD_INDICES_LEN, sizeof(u32));
         render_item->indices_len = DEFAULT_QUAD_INDICES_LEN;
         render_item->index_stride = DEFAULT_QUAD_INDICES_LEN;
-        create_quad(render_item, pos, 0, render_item->size, 1);
+        create_quad(render_item, pos, 0, size, 1, offset);
         break;
 
     case RENDER_ITEM_CIRCLE:
         render_item->vertices = calloc(DEFAULT_CIRCLE_VERTICES_AMOUNT * DEFAULT_POS_ONLY_VERTEX_STRIDE, sizeof(f32));
         render_item->vertices_len = DEFAULT_CIRCLE_VERTICES_AMOUNT * DEFAULT_POS_ONLY_VERTEX_STRIDE;
         render_item->vertex_stride = DEFAULT_POS_ONLY_VERTEX_STRIDE;
-        create_circle(render_item, pos, 0, render_item->size, DEFAULT_CIRCLE_VERTICES_AMOUNT);
+        create_circle(render_item, pos, 0, size, DEFAULT_CIRCLE_VERTICES_AMOUNT);
         break;
 
     case RENDER_ITEM_RECT:
         render_item->vertices = calloc(4 * DEFAULT_POS_ONLY_VERTEX_STRIDE, sizeof(f32));
         render_item->vertices_len = 4 * DEFAULT_POS_ONLY_VERTEX_STRIDE;
         render_item->vertex_stride = DEFAULT_POS_ONLY_VERTEX_STRIDE;
-        create_rect(render_item, pos, 0, render_item->size);
+        create_rect(render_item, pos, 0, size);
+        break;
+
+    case RENDER_ITEM_QUAD_WITH_POINTS:
+        render_item->vertices = calloc(DEFAULT_QUAD_VERTICES_LEN, sizeof(f32));
+        render_item->vertices_len = DEFAULT_QUAD_VERTICES_LEN;
+        render_item->positional_vertices = calloc(DEFAULT_QUAD_STRIDE, sizeof(f32));
+        render_item->positional_vertices_len = DEFAULT_QUAD_STRIDE;
+        render_item->vertex_stride = DEFAULT_QUAD_STRIDE;
+        render_item->indices = calloc(DEFAULT_QUAD_INDICES_LEN, sizeof(u32));
+        render_item->indices_len = DEFAULT_QUAD_INDICES_LEN;
+        render_item->index_stride = DEFAULT_QUAD_INDICES_LEN;
+        create_quad_from_points(render_item, pos, 0, size, 0, offset, points);
         break;
 
     default:
@@ -583,8 +669,8 @@ mat4x4 *scale_model(mat4x4 *model, float *size, short should_ignore_camera)
         0, 0, 1, 0,
         0, 0, 0, 1};
 
-    mat4x4_identity((vec4 *)model);
-    mat4x4_mul((vec4 *)model, model, scale);
+    mat4x4_identity(*model);
+    mat4x4_mul(*model, *model, scale);
 
     return model;
 }
@@ -595,9 +681,9 @@ mat4x4 *rotate_model(mat4x4 *model, float *rotation)
     float rotationY = rotation[1];
     float rotationZ = rotation[2];
 
-    mat4x4_rotate((vec4 *)model, model, 1, 0, 0, rotationX);
-    mat4x4_rotate((vec4 *)model, model, 0, 1, 0, rotationY);
-    mat4x4_rotate((vec4 *)model, model, 0, 0, 1, rotationZ);
+    mat4x4_rotate(*model, *model, 1, 0, 0, rotationX);
+    mat4x4_rotate(*model, *model, 0, 1, 0, rotationY);
+    mat4x4_rotate(*model, *model, 0, 0, 1, rotationZ);
 
     return model;
 }
@@ -640,7 +726,7 @@ Render_Item *add_render_item(Render_Item *render_item)
     Texture_Group texture_group = shader_group.texture_groups[render_item->texture_data->texture_location];
     render_item->render_item_index = texture_group.render_items->len;
 
-    printf("Adding render item. Shader: %d | Texture: %d | Length: %d\n", render_item->shader_position, render_item->texture_data->texture_location, texture_group.render_items->len);
+    printf("Adding render item. Shader: %d | Texture: %d | Length: %zd\n", render_item->shader_position, render_item->texture_data->texture_location, texture_group.render_items->len);
     return append_array(texture_group.render_items, render_item);
 }
 
@@ -663,7 +749,7 @@ Render_Item *get_render_item(short make_new, RENDER_ITEM_TYPE type, int shader_p
         render_item->render_item_index = render_items->len;
         // printf("Creating render item with type: %d and at index: %d\n", type, render_item->render_item_index);
         render_item = append_array(render_items, render_item);
-        printf("Render items len: %d\n", render_items->len);
+        printf("Render items len: %zd\n", render_items->len);
 
         return render_item;
     }
@@ -696,7 +782,7 @@ void append_item_to_render_item(Render_Item *render_item, void *entity)
             render_item->positional_vertices = realloc(render_item->positional_vertices, render_item->positional_vertices_len * sizeof(f32));
             render_item->indices_len = DEFAULT_QUAD_INDICES_LEN * render_item->entity_ids->len;
             render_item->indices = realloc(render_item->indices, render_item->indices_len * sizeof(u32));
-            create_quad(render_item, _entity->pos, _entity->vbo_pos, render_item->size, 0);
+            create_quad(render_item, _entity->pos, _entity->vbo_pos, _entity->size, 0, _entity->offset);
             break;
 
         case RENDER_ITEM_VERTICAL_QUAD:
@@ -706,26 +792,36 @@ void append_item_to_render_item(Render_Item *render_item, void *entity)
             render_item->positional_vertices = realloc(render_item->positional_vertices, render_item->positional_vertices_len * sizeof(f32));
             render_item->indices_len = DEFAULT_QUAD_INDICES_LEN * render_item->entity_ids->len;
             render_item->indices = realloc(render_item->indices, render_item->indices_len * sizeof(u32));
-            create_quad(render_item, _entity->pos, _entity->vbo_pos, render_item->size, 1);
+            create_quad(render_item, _entity->pos, _entity->vbo_pos, _entity->size, 1, _entity->offset);
             break;
 
         case RENDER_ITEM_CIRCLE:
             render_item->vertices = calloc(DEFAULT_CIRCLE_VERTICES_AMOUNT * DEFAULT_POS_ONLY_VERTEX_STRIDE * render_item->entity_ids->len, sizeof(f32));
             render_item->vertices_len = DEFAULT_CIRCLE_VERTICES_AMOUNT * DEFAULT_POS_ONLY_VERTEX_STRIDE * render_item->entity_ids->len;
-            create_circle(render_item, _entity->pos, _entity->vbo_pos, render_item->size, DEFAULT_CIRCLE_VERTICES_AMOUNT);
+            create_circle(render_item, _entity->pos, _entity->vbo_pos, _entity->size, DEFAULT_CIRCLE_VERTICES_AMOUNT);
+            break;
+
+        case RENDER_ITEM_QUAD_WITH_POINTS:
+            render_item->vertices_len = DEFAULT_QUAD_VERTICES_LEN * render_item->entity_ids->len;
+            render_item->vertices = realloc(render_item->vertices, render_item->vertices_len * sizeof(f32));
+            render_item->positional_vertices_len = DEFAULT_QUAD_STRIDE * render_item->entity_ids->len;
+            render_item->positional_vertices = realloc(render_item->positional_vertices, render_item->positional_vertices_len * sizeof(f32));
+            render_item->indices_len = DEFAULT_QUAD_INDICES_LEN * render_item->entity_ids->len;
+            render_item->indices = realloc(render_item->indices, render_item->indices_len * sizeof(u32));
+            create_quad_from_points(render_item, _entity->pos, 0, _entity->size, 0, _entity->offset, _entity->points);
             break;
 
         default:
             printf("Unable to map render_item to type: %d\n", render_item->type);
-            return NULL;
+            return;
         }
 
         /** update buffer sizes */
         glBufferData(GL_ARRAY_BUFFER, render_item->vertices_len * sizeof(f32), render_item->vertices, GL_DYNAMIC_DRAW);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, render_item->indices_len * sizeof(u32), render_item->indices, GL_STATIC_DRAW);
 
-        unbind_vao(render_item->vao);
-        unbind_vbo(render_item->vbo);
+        unbind_vao(render_item);
+        unbind_vbo(render_item);
     }
 }
 
@@ -743,21 +839,24 @@ void update_render_item(void *entity)
     switch (render_item->type)
     {
     case RENDER_ITEM_QUAD:
-        create_quad(render_item, _entity->pos, _entity->vbo_pos, render_item->size, 0);
+        create_quad(render_item, _entity->pos, _entity->vbo_pos, _entity->size, 0, _entity->offset);
         break;
     case RENDER_ITEM_VERTICAL_QUAD:
-        create_quad(render_item, _entity->pos, _entity->vbo_pos, render_item->size, 1);
+        create_quad(render_item, _entity->pos, _entity->vbo_pos, _entity->size, 1, _entity->offset);
         break;
     case RENDER_ITEM_RECT:
-        create_rect(render_item, _entity->pos, _entity->vbo_pos, render_item->size);
+        create_rect(render_item, _entity->pos, _entity->vbo_pos, _entity->size);
         break;
     case RENDER_ITEM_CIRCLE:
-        create_circle(render_item, _entity->pos, _entity->vbo_pos, render_item->size, DEFAULT_CIRCLE_VERTICES_AMOUNT);
+        create_circle(render_item, _entity->pos, _entity->vbo_pos, _entity->size, DEFAULT_CIRCLE_VERTICES_AMOUNT);
+        break;
+    case RENDER_ITEM_QUAD_WITH_POINTS:
+        create_quad_from_points(render_item, _entity->pos, 0, _entity->size, 0, _entity->offset, _entity->points);
         break;
 
     default:
         printf("Unable to map render_item to type: %d\n", render_item->type);
-        return NULL;
+        return;
     }
 
     render_item->updated = 1;

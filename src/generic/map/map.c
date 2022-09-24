@@ -23,7 +23,7 @@ size_t get_hash(Map *map, void *key)
 {
     if (map->use_long_key == 1)
     {
-        long _key = key;
+        long _key = (long)key;
         return _key % map->size;
     }
 
@@ -55,7 +55,7 @@ void *get_value_from_map(Map *map, char *key)
     return value;
 };
 
-void *set_value_in_map(Map *map, char *key, void *value)
+void *set_value_in_map(Map *map, void *key, void *value)
 {
     size_t index = get_hash(map, key);
 
@@ -101,8 +101,8 @@ void remove_value_in_map(Map *map, char *key)
 
         if (map->use_long_key)
         {
-            long _key = key;
-            long map_value_key = map_value->key;
+            long _key = (long)key;
+            long map_value_key = (long)map_value->key;
 
             while (map_value_key != _key)
             {

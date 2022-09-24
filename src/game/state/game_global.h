@@ -38,13 +38,15 @@ typedef struct in_game_store
     /** Building Placement */
     long building_selection_entity_id;
     short is_placing_building;
-    BUILDING building_being_placed;
+    BUILDING_TYPE building_being_placed;
 
     /** Map */
     Game_Map *map;
 
     /** UI */
     Array *selected_unit_icon_ids;
+    Array *command_button_ids;
+    Array *command_board_info_ids;
 } In_Game_Store;
 
 typedef struct game_stores

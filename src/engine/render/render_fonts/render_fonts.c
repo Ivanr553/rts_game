@@ -26,8 +26,8 @@ void render_text_in_world(char *c, vec3 pos)
             pos[2]};
 
         add_shader(character_render_item, 0);
-        add_sprite_sheet_data(character_render_item, offset, sprite_size, sprite_sheet_size);
-        init_render_item(character_render_item, new_pos, size, NULL, NULL);
+        add_sprite_sheet_data(character_render_item, sprite_size, sprite_sheet_size);
+        init_render_item(character_render_item, new_pos, size, NULL, NULL, offset, NULL);
         bind_render_item_data(character_render_item);
         add_texture(character_render_item, "assets/UI/Text.png");
 
@@ -107,9 +107,6 @@ Render_Item *render_text_on_screen(Render_Item *render_item, char *c, int max_st
     render_item->vertices = vertices;
     render_item->indices = indices;
 
-    render_item->size[0] = size[0];
-    render_item->size[1] = size[1];
-
     render_item->should_ignore_camera = 1;
     add_shader(render_item, 0);
     bind_render_item_data(render_item);
@@ -118,7 +115,7 @@ Render_Item *render_text_on_screen(Render_Item *render_item, char *c, int max_st
     return add_render_item(render_item);
 };
 
-void update_text_item(Render_Item *render_item, char *c, vec3 pos)
+void update_text_item(Render_Item *render_item, char *c, vec3 pos, vec2 size)
 {
     int updated_length = 0;
     int length = strlen(c);
@@ -136,7 +133,7 @@ void update_text_item(Render_Item *render_item, char *c, vec3 pos)
         render_item->indices = realloc(render_item->indices, render_item->indices_len * sizeof(u32));
     }
 
-    float overlap_ratio = 0.8 * render_item->size[0];
+    float overlap_ratio = 0.8 * size[0];
     for (int i = 0; i < length; i++)
     {
         int char_int = c[i];
@@ -148,7 +145,7 @@ void update_text_item(Render_Item *render_item, char *c, vec3 pos)
         int sprite_size[2] = {1, 1};
 
         float *uvs = get_uvs(offset, sprite_sheet_count, sprite_size);
-        Vertex *quad_vertices = create_quad_vertices(pos[0] + (i * overlap_ratio), pos[1], 0, render_item->size, uvs);
+        Vertex *quad_vertices = create_quad_vertices(pos[0] + (i * overlap_ratio), pos[1], 0, size, uvs);
 
         for (int j = 0; j < 4; j++)
         {
@@ -197,8 +194,8 @@ void update_text_item(Render_Item *render_item, char *c, vec3 pos)
         glBufferData(GL_ARRAY_BUFFER, render_item->vertices_len * sizeof(f32), render_item->vertices, GL_DYNAMIC_DRAW);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, render_item->indices_len * sizeof(u32), render_item->indices, GL_STATIC_DRAW);
 
-        unbind_vao(render_item->vao);
-        unbind_vbo(render_item->vbo);
+        unbind_vao(render_item);
+        unbind_vbo(render_item);
     }
 
     render_item->updated = 1;

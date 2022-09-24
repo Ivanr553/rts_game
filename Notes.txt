@@ -1,6 +1,9 @@
 =============================================================             G O A L S             ==========================================================================
 1. Need to update drag select to be a trapezoid not a square to account for the perspective skewing at the edges of the screen
 2. Need to allow entities to determine draw types
+3. Add all components to an array and loop over those arrays instead
+4. C H U N K I N G
+5. Handle dead entities better -> update selection list as units die
 
 
 When moving as a tight group, units will maintain their orientation with each other when moving to a location

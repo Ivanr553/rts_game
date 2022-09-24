@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <linmath.h>
 
 #include "render_util.h"
 
@@ -74,7 +75,7 @@ float *get_mouse_ray(float x, float y)
         1};
 
     mat4x4 inverted_projection;
-    mat4x4_invert(&inverted_projection, global.camera.projection);
+    mat4x4_invert(&inverted_projection[0], global.camera.projection);
 
     if (!global.camera.projection)
     {
@@ -85,15 +86,15 @@ float *get_mouse_ray(float x, float y)
     }
 
     vec4 temp_eye_coords;
-    mat4x4_mul_vec4(&temp_eye_coords, &inverted_projection, &clip_coords);
+    mat4x4_mul_vec4(&temp_eye_coords[0], &inverted_projection[0], &clip_coords[0]);
 
     vec4 eye_coords = {temp_eye_coords[0], temp_eye_coords[1], -1, 0};
 
     mat4x4 inverted_view;
-    mat4x4_invert(&inverted_view, global.camera.view);
+    mat4x4_invert(&inverted_view[0], global.camera.view);
 
     vec4 ray_world;
-    mat4x4_mul_vec4(&ray_world, inverted_view, &eye_coords);
+    mat4x4_mul_vec4(&ray_world[0], inverted_view, &eye_coords[0]);
 
     vec3 _mouse_ray = {ray_world[0], ray_world[1], ray_world[2]};
 
@@ -143,13 +144,13 @@ short is_point_within_square(float square_x, float square_y, float square_width,
 
     if ((x >= left_bound) && (x <= right_bound))
     {
-        printf("Within x bound\n");
+        // printf("Within x bound\n");
         within_x = 1;
     }
 
     if ((y >= bottom_bound) && (y <= top_bound))
     {
-        printf("Within y bound\n");
+        // printf("Within y bound\n");
         within_y = 1;
     }
 
@@ -167,3 +168,31 @@ short is_point_within_circle(float circle_x, float circle_y, float radius, float
 
     return dist <= radius;
 }
+
+float get_slope_of_line(float x_1, float y_1, float x_2, float y_2)
+{
+    float d_x = x_2 - x_1;
+    float d_y = y_2 - y_1;
+
+    return d_y / d_x;
+}
+
+float get_line_constant(float x, float y, float slope)
+{
+    return y - (x * slope);
+}
+
+float *get_point_on_line(float x, float y, float x_1, float y_1, float x_2, float y_2)
+{
+    float slope = get_slope_of_line(x_1, y_1, x_2, y_2);
+    float line_constant = get_line_constant(x_1, y_1, slope);
+
+    float return_y = slope * x + line_constant;
+    float return_x = (y - line_constant) / slope;
+
+    float *point = calloc(2, sizeof(float));
+    point[0] = return_x;
+    point[1] = return_y;
+
+    return point;
+};

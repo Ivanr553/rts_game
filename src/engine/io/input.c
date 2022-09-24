@@ -60,6 +60,9 @@ void input_update(void)
     // Key_State tab;
     update_key_state(keyboard_state[SDL_SCANCODE_TAB], &global.input.tab);
 
+    /** Function Keys */
+    update_key_state(keyboard_state[SDL_SCANCODE_F10], &global.input.f10);
+
     // Num Keys
     update_key_state(keyboard_state[SDL_SCANCODE_1], &global.input.one);
     update_key_state(keyboard_state[SDL_SCANCODE_2], &global.input.two);
@@ -67,6 +70,22 @@ void input_update(void)
     // Char Keys
     update_key_state(keyboard_state[SDL_SCANCODE_A], &global.input.a);
     update_key_state(keyboard_state[SDL_SCANCODE_B], &global.input.b);
+
+    update_key_state(keyboard_state[SDL_SCANCODE_Q], &global.input.q);
+    update_key_state(keyboard_state[SDL_SCANCODE_W], &global.input.w);
+    update_key_state(keyboard_state[SDL_SCANCODE_E], &global.input.e);
+    update_key_state(keyboard_state[SDL_SCANCODE_R], &global.input.r);
+    update_key_state(keyboard_state[SDL_SCANCODE_T], &global.input.t);
+
+    update_key_state(keyboard_state[SDL_SCANCODE_S], &global.input.s);
+    update_key_state(keyboard_state[SDL_SCANCODE_D], &global.input.d);
+    update_key_state(keyboard_state[SDL_SCANCODE_F], &global.input.f);
+    update_key_state(keyboard_state[SDL_SCANCODE_G], &global.input.g);
+
+    update_key_state(keyboard_state[SDL_SCANCODE_Z], &global.input.z);
+    update_key_state(keyboard_state[SDL_SCANCODE_X], &global.input.x);
+    update_key_state(keyboard_state[SDL_SCANCODE_C], &global.input.c);
+    update_key_state(keyboard_state[SDL_SCANCODE_V], &global.input.v);
 
     // Mouse inputs
     u32 buttons = SDL_GetMouseState(&global.mouse.x, &global.mouse.y);
@@ -87,6 +106,12 @@ void input_update(void)
 
     if (global.mouse.leftButton == KS_PRESSED)
     {
+        if (global.mouse.time_since_last_click < 20)
+        {
+            global.mouse.did_double_click = 1;
+        }
+
+        global.mouse.time_since_last_click = 0;
         global.mouse.drag_start_x = global.mouse.x;
         global.mouse.drag_start_y = global.mouse.y;
         global.mouse.drag_state = DRAG_STATE_DRAGGING;
@@ -97,6 +122,8 @@ void input_update(void)
         {
             global.mouse.drag_state = DRAG_STATE_RELEASED;
         }
+        global.mouse.time_since_last_click++;
+        global.mouse.did_double_click = 0;
     }
 };
 

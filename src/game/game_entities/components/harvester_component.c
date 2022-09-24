@@ -5,12 +5,14 @@
 #include "../game_entities_internal.h"
 #include "../../state/state.h"
 
+/** Harvesting speed => larger is slower (Will probably want to fix) */
 void add_harvester_component(Game_Entity *unit_entity, int harvesting_speed, float harvesting_distance)
 {
     Component_Harvest *harvester_component = calloc(1, sizeof(Component_Harvest));
     harvester_component->harvesting_speed = harvesting_speed;
     harvester_component->state = HARVESTING_STATE_IDLE;
     harvester_component->harvesting_distance = harvesting_distance;
+    harvester_component->update_harvester_component = update_harvester_component;
 
     unit_entity->harvester_component = harvester_component;
 };
@@ -35,6 +37,7 @@ void start_harvesting(Game_Entity *unit_entity, Game_Entity *resource_entity)
     unit_entity->harvester_component->state = HARVESTING_STATE_COMMUTING;
     add_resource_harvesting_data(unit_entity->harvester_component, resource_entity->resource_component->resource_type);
     unit_entity->harvester_component->resource_entity = resource_entity;
+    unit_entity->harvester_component->return_building_entity = NULL;
 
     unit_entity->entity->can_collide = 0;
 };
@@ -49,7 +52,7 @@ void stop_harvesting(Game_Entity *unit_entity)
     unit_entity->entity->can_collide = 1;
 };
 
-void handle_harvesting(Game_Entity *unit_entity)
+void update_harvester_component(Game_Entity *unit_entity)
 {
     Component_Harvest *harvester_component = unit_entity->harvester_component;
     switch (harvester_component->state)
@@ -79,6 +82,30 @@ void handle_harvesting(Game_Entity *unit_entity)
 
     case HARVESTING_STATE_HARVESTING:
         // printf("Harvesting\n");
+        if (harvester_component->resource_quantity == harvester_component->max_resource_quantity)
+        {
+            harvester_component->state = HARVESTING_STATE_DEPOSITING;
+            break;
+        }
+
+        Component_Resource *resource_component = harvester_component->resource_entity->resource_component;
+        if (resource_component->recently_harvested_by_id == 0)
+        {
+            resource_start_harvesting(harvester_component->resource_entity, unit_entity->entity->id);
+        }
+        else if (resource_component->recently_harvested_by_id != unit_entity->entity->id)
+        {
+            Game_Entity *nearest_resource = find_nearest_free_resource(unit_entity);
+            if (!nearest_resource)
+            {
+                harvester_component->state = HARVESTING_STATE_IDLE;
+                break;
+            }
+            harvester_component->resource_entity = nearest_resource;
+            harvester_component->state = HARVESTING_STATE_COMMUTING;
+            break;
+        }
+
         if (harvester_component->harvesting_time_left == 0)
         {
             harvester_component->harvesting_time_left = harvester_component->harvesting_speed;
@@ -101,6 +128,9 @@ void handle_harvesting(Game_Entity *unit_entity)
         {
             Array *entities = global.render.entities;
 
+            Game_Entity *closest_building = NULL;
+            float closest_distance = INFINITY;
+
             for (int i = 0; i < entities->len; i++)
             {
                 Entity **entity_ptr = get_item_from_array(entities, i);
@@ -115,11 +145,19 @@ void handle_harvesting(Game_Entity *unit_entity)
 
                 if (entity_class && entity_class->building_component && entity_class->building_component->building_type == BUILDING_TYPE_BASE)
                 {
-                    harvester_component->return_building_entity = entity_class;
-                    move_to(unit_entity->entity, entity->pos);
-                    break;
+                    float dist = sqrtf(powf(unit_entity->entity->pos[0] - entity_class->entity->pos[0], 2) + powf(unit_entity->entity->pos[1] - entity_class->entity->pos[1], 2));
+
+                    if (dist < closest_distance)
+                    {
+                        closest_distance = dist;
+                        closest_building = entity_class;
+                    }
                 }
             }
+
+            harvester_component->return_building_entity = closest_building;
+            move_to(unit_entity->entity, closest_building->entity->pos);
+            break;
         }
         else
         {

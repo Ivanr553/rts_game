@@ -14,7 +14,7 @@ short handle_ui_element_click(float x, float y)
         Entity *entity = *entity_ptr_ptr;
         Game_Entity *game_entity = entity->entity_class;
 
-        if (is_point_within_square(entity->pos[0], entity->pos[1], entity->render_item->size[0], -entity->render_item->size[1], x, y))
+        if (is_point_within_square(entity->pos[0], entity->pos[1], entity->size[0], -entity->size[1], x, y))
         {
 
             if (game_entity->ui_component->on_click)

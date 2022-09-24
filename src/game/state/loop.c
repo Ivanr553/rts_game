@@ -18,23 +18,41 @@ void game_loop(void)
     // printf("Ended game loop\n");
 };
 
-void handle_entity_class_updates(Entity *entity)
+short handle_entity_class_updates(Entity *entity)
 {
-    switch (entity->entity_class_type)
+    Game_Entity *game_entity = entity->entity_class;
+
+    if (!game_entity)
     {
-    case ENTITY_CLASS_UNIT:
-        Game_Entity *unit_entity = entity->entity_class;
-
-        if (unit_entity->harvester_component)
-        {
-            handle_harvesting(unit_entity);
-        }
-
-        break;
-
-    default:
-        return;
+        return 0;
     }
+
+    if (game_entity->combat_component)
+    {
+        game_entity->combat_component->update_combat_component(game_entity);
+
+        if (game_entity->marked_for_deletion)
+        {
+            return 1;
+        }
+    }
+
+    if (game_entity->harvester_component)
+    {
+        game_entity->harvester_component->update_harvester_component(game_entity);
+    }
+
+    if (game_entity->building_component)
+    {
+        game_entity->building_component->update_building_component(game_entity);
+    }
+
+    if (game_entity->ui_component && game_entity->ui_component->update_ui_entity)
+    {
+        game_entity->ui_component->update_ui_entity(game_entity);
+    }
+
+    return 0;
 };
 
 /** ENTITY UPDATING */
@@ -58,7 +76,19 @@ void game_loop_update_entities(void)
 
         // printf("Updating state on entity: %d %p\n", entity->id, entity);
 
-        handle_entity_class_updates(entity);
+        if (handle_entity_class_updates(entity))
+        {
+            remove_entity(entity);
+            memset(&entity->entity_class, 0, sizeof(Game_Entity));
+            printf("Doing the thing\n");
+            continue;
+        }
+
+        if (!entity)
+        {
+            printf("Null entity\n");
+            continue;
+        }
 
         if (!handle_move_to(entity))
         {
@@ -112,7 +142,7 @@ void animate_entity(Entity *entity)
     {
         entity->animation_data->current_frame = (entity->animation_data->current_frame + 1) % (entity->animation_data->current_animation->total_frames);
 
-        entity->render_item->sprite_sheet_data->offset[0] = entity->animation_data->current_frame + 1;
+        entity->offset[0] = entity->animation_data->current_frame + 1;
         entity->render_item->should_update = 1;
     }
 };
@@ -211,8 +241,6 @@ Entity *update_entity_pos(Entity *entity)
             new_velocity_x = 0;
         }
 
-        /**  Y  */
-
         /** Checking and handling if we are NEARING the position */
         if (fabs(y_delta) < fabs(new_velocity_y) && ((y_delta / y_delta) * (new_velocity_y / new_velocity_y)) != -1)
         {
@@ -266,92 +294,6 @@ float *get_coords(float *ray, vec3 start)
 
     return end;
 }
-
-Entity *handle_collisions(Entity *entity)
-{
-    Render_Item *render_item = entity->render_item;
-
-    if (!entity->can_collide)
-    {
-        return entity;
-    }
-
-    Array *entities = global.render.entities;
-    for (int i = 0; i < entities->len; i++)
-    {
-        Entity **c_entity_ptr = get_item_from_array(entities, i);
-        Entity *c_entity = *c_entity_ptr;
-
-        if (!c_entity || !c_entity->can_collide || entity->id == c_entity->id)
-        {
-            continue;
-        }
-
-        if (c_entity->unit_radius != 0 && entity->unit_radius != 0)
-        {
-            float collision_distance = did_circles_collide(entity->pos[0], entity->pos[1], entity->unit_radius, c_entity->pos[0], c_entity->pos[1], c_entity->unit_radius);
-
-            if (collision_distance)
-            {
-                float distance_x = entity->pos[0] - c_entity->pos[0];
-                float distance_y = entity->pos[1] - c_entity->pos[1];
-                float sum_radii = entity->unit_radius + c_entity->unit_radius;
-                float distance = sqrtf(distance_x * distance_x + distance_y * distance_y);
-                if (distance == 0)
-                {
-                    distance = 1;
-                }
-                float magnitude = sum_radii - distance;
-
-                float d_x = distance_x / (fabs(distance_x) + fabs(distance_y));
-                float d_y = distance_y / (fabs(distance_x) + fabs(distance_y));
-                float c_d_x = -distance_x / (fabs(distance_x) + fabs(distance_y));
-                float c_d_y = -distance_y / (fabs(distance_x) + fabs(distance_y));
-
-                // printf("magnitude: %f | %f %f %f\n", magnitude, d_x, d_y, d_x + d_y);
-
-                if (c_entity->render_item->is_static_object)
-                {
-                    entity->pos[0] += magnitude * d_x / 2;
-                    entity->pos[1] += magnitude * d_y / 2;
-                    entity->render_item->should_update = 1;
-                    continue;
-                }
-
-                if (entity->should_move_to_pos)
-                {
-                    if (entity->stop_should_move_count == 0)
-                    {
-                        entity->stop_should_move_count = 100;
-                    }
-                    c_entity->pos[0] += magnitude * c_d_x / 50;
-                    c_entity->pos[1] += magnitude * c_d_y / 50;
-                }
-                if (c_entity->should_move_to_pos)
-                {
-                    if (c_entity->stop_should_move_count == 0)
-                    {
-                        c_entity->stop_should_move_count = 100;
-                    }
-                    entity->pos[0] += magnitude * d_x / 50;
-                    entity->pos[1] += magnitude * d_y / 50;
-                }
-                if (!entity->should_move_to_pos && !c_entity->should_move_to_pos)
-                {
-                    c_entity->pos[0] += magnitude * c_d_x / 50;
-                    c_entity->pos[1] += magnitude * c_d_y / 50;
-                    entity->pos[0] += magnitude * d_x / 50;
-                    entity->pos[1] += magnitude * d_y / 50;
-                }
-
-                entity->render_item->should_update = 1;
-                c_entity->render_item->should_update = 1;
-            }
-        }
-    }
-
-    return entity;
-};
 
 void test_if_map_entity_was_clicked(void)
 {

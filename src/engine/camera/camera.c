@@ -23,13 +23,14 @@ void init_camera(void)
 
 void camera_matrix(float FOVdeg, float nearPlane, float farPlane)
 {
-    mat4x4 look_at_vector, projection, view;
+    mat4x4 look_at_matrix, projection, view;
 
-    mat4x4_add(look_at_vector, (vec4 *)global.camera.position, (vec4 *)global.camera.orientation);
-    mat4x4_look_at(&view, global.camera.position, look_at_vector, global.camera.up);
+    mat4x4_add(&look_at_matrix[0], (vec4 *)global.camera.position, (vec4 *)global.camera.orientation);
+    vec3 look_at = {look_at_matrix[0][0], look_at_matrix[0][1], look_at_matrix[0][2]};
+    mat4x4_look_at(&view[0], global.camera.position, look_at, global.camera.up);
     mat4x4_perspective(global.camera.projection, FOVdeg, (float)((double)global.camera.width / (double)global.camera.height), nearPlane, farPlane);
 
-    mat4x4_mul(global.camera.camera_uniform, global.camera.projection, &view);
+    mat4x4_mul(global.camera.camera_uniform, global.camera.projection, &view[0]);
     memcpy(global.camera.view, view, sizeof(mat4x4));
 };
 

@@ -124,7 +124,7 @@ void add_texture_data_to_texture_group(Texture_Group *texture_groups, char *text
     texture_data->texture = texture;
     set_value_in_map(global.render.texture_map, texture_data->file_path, texture_data);
 
-    texture_group.texture_id = *texture;
+    texture_group.texture_id = texture;
     texture_groups[t] = texture_group;
 
     glBindTexture(GL_TEXTURE_2D, 0);
