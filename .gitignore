@@ -6,4 +6,3 @@ build
 ./build/*.obj
 *.ilk
 *.pdb
-*.exe
