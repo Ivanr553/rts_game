@@ -297,7 +297,7 @@ Entity *create_line_entity(vec3 pos, float vertices[6], vec4 color)
 
     vec2 size = {1, 1};
 
-    init_render_item(render_item, pos, size, NULL, color, NULL, NULL);
+    init_render_item(render_item, pos, size, NULL, color, NULL, NULL, 1);
     create_line(render_item, vertices);
     bind_render_item_data(render_item);
 

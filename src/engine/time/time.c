@@ -30,7 +30,7 @@ void render_frame_data_on_screen(u32 frames)
         frame_rate_entity->size[1] = size[1];
 
         add_sprite_sheet_data(frame_rate_entity->render_item, sprite_size, sprite_sheet_size);
-        init_render_item(frame_rate_entity->render_item, pos, frame_rate_entity->size, NULL, NULL, frame_rate_entity->offset, NULL);
+        init_render_item(frame_rate_entity->render_item, pos, frame_rate_entity->size, NULL, NULL, frame_rate_entity->offset, NULL, 1);
         bind_render_item_data(frame_rate_entity->render_item);
         add_entity(frame_rate_entity);
 

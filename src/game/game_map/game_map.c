@@ -144,6 +144,8 @@ void create_map_from_tiles(void)
     render_item->vertices = vertices;
     render_item->indices = indices;
 
+    render_item->opacity = 1;
+
     vec3 pos = {0, 0, 0};
 
     bind_render_item_data(render_item);

@@ -114,6 +114,7 @@ typedef struct render_item
     vec4 color;
     vec3 rotation;
     mat4x4 model;
+    float opacity;
 
     /** Physics */
     short is_collided;
@@ -131,7 +132,7 @@ typedef struct render_item
 } Render_Item;
 
 /** TODO: Organize */
-Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color, int offset[2], float points[12]);
+Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color, int offset[2], float points[12], float opacity);
 Render_Item *get_render_item(short make_new, RENDER_ITEM_TYPE type, int shader_position, char *texture_file_path);
 Render_Item *add_render_item(Render_Item *render_item);
 void append_item_to_render_item(Render_Item *render_item, void *entity);

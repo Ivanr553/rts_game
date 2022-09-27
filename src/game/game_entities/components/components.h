@@ -17,7 +17,7 @@ void start_harvesting(Game_Entity *unit_entity, Game_Entity *resource_entity);
 void stop_harvesting(Game_Entity *unit_entity);
 
 /** Building */
-void add_building_component(Game_Entity *unit_entity, BUILDING_TYPE building_type);
+void add_building_component(Game_Entity *unit_entity, BUILDING_TYPE building_type, float *pos, float unit_radius);
 
 /** Resource */
 void add_resource_component(Game_Entity *unit_entity, RESOURCE resource_type, int amount);
@@ -34,4 +34,4 @@ void add_selectable_component(Game_Entity *game_entity, GAME_ENTITY_TYPE unit_ty
 void add_combat_component(Game_Entity *game_entity, int max_health, int max_energy, int armor, WEAPON_TYPE weapon_type_1, WEAPON_TYPE weapon_type_2);
 
 /** Builder */
-void add_builder_component(Game_Entity *game_entity);
+void add_builder_component(Game_Entity *game_entity, int build_speed);

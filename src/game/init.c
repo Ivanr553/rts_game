@@ -17,7 +17,6 @@ void initialize_state(void)
 {
     game_global.state = IN_GAME;
 
-    initialize_mouse_ray();
     init_drag_select();
 
     /** INITIALIZING STORES */
@@ -63,5 +62,5 @@ void initialize_game(void)
         control_group_add_unit(control_group, worker->entity->id);
     }
 
-    create_building((vec3){game_global.game_stores.in_game_store.map->start_x, game_global.game_stores.in_game_store.map->start_y, 0.05}, (vec2){4, 4}, BUILDING_TYPE_BASE);
+    create_building((vec3){game_global.game_stores.in_game_store.map->start_x, game_global.game_stores.in_game_store.map->start_y, 0.05}, BUILDING_TYPE_BASE);
 };

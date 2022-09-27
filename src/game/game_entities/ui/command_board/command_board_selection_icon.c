@@ -77,7 +77,7 @@ Game_Entity *create_selection_icon(Game_Entity *selected_game_entity, int index)
     render_item->should_ignore_camera = 1;
 
     add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
-    init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
+    init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL, 1);
     bind_render_item_data(render_item);
 
     return game_entity;

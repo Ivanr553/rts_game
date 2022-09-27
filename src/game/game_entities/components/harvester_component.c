@@ -162,7 +162,6 @@ void update_harvester_component(Game_Entity *unit_entity)
         else
         {
             float dist = sqrtf(powf(unit_entity->entity->pos[0] - unit_entity->entity->move_to_pos[0], 2) + powf(unit_entity->entity->pos[1] - unit_entity->entity->move_to_pos[1], 2));
-            // printf("Dist: %f\n", dist - harvester_component->return_building_entity->entity->unit_radius);
 
             if ((dist - harvester_component->return_building_entity->entity->unit_radius) <= harvester_component->harvesting_distance)
             {

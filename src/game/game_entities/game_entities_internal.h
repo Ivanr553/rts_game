@@ -11,14 +11,19 @@ typedef enum GAME_ENTITY_TYPE
     GAME_ENTITY_TYPE_MAX,
     GAME_ENTITY_TYPE_ALF,
 
+    /** Robot Faction */
+    GAME_ENTITY_TYPE_SPIKE,
+
     /** Buildings */
     GAME_ENTITY_TYPE_BASE,
+    GAME_ENTITY_TYPE_FACTORY,
 } GAME_ENTITY_TYPE;
 
 typedef enum building_type
 {
     _BUILDING_TYPE,
-    BUILDING_TYPE_BASE
+    BUILDING_TYPE_BASE,
+    BUILDING_TYPE_FACTORY
 } BUILDING_TYPE;
 
 typedef enum entity_class
@@ -38,6 +43,13 @@ typedef enum harvesting_state
     HARVESTING_STATE_HARVESTING,
     HARVESTING_STATE_DEPOSITING
 } HARVESTING_STATE;
+
+typedef enum builder_state
+{
+    BUILDER_STATE_IDLE,
+    BUILDER_STATE_COMMUTING,
+    BUILDER_STATE_BUILDING
+} BUILDER_STATE;
 
 typedef enum weapon_type
 {
@@ -65,14 +77,6 @@ typedef enum ui_type
     UI_TYPE_COMMAND_BOARD_BUTTON_10,
     UI_TYPE_COMMAND_BOARD_BUTTON_11,
     UI_TYPE_COMMAND_BOARD_BUTTON_12,
-    UI_TYPE_COMMAND_BOARD_BUTTON_13,
-    UI_TYPE_COMMAND_BOARD_BUTTON_14,
-    UI_TYPE_COMMAND_BOARD_BUTTON_15,
-    UI_TYPE_COMMAND_BOARD_BUTTON_16,
-    UI_TYPE_COMMAND_BOARD_BUTTON_17,
-    UI_TYPE_COMMAND_BOARD_BUTTON_18,
-    UI_TYPE_COMMAND_BOARD_BUTTON_19,
-    UI_TYPE_COMMAND_BOARD_BUTTON_20,
 
     UI_TYPE_COMMAND_BOARD_QUEUE_1,
     UI_TYPE_COMMAND_BOARD_QUEUE_2,
@@ -113,6 +117,8 @@ typedef struct build_command
 typedef struct queued_command
 {
     QUEUED_COMMAND_TYPE type;
+    short is_complete;
+    short has_started;
     void *queued_command_data;
 } Queued_Command;
 
@@ -141,6 +147,7 @@ typedef struct queued_build
     int build_time;
     int total_build_time;
     int icon_offset[2];
+    vec3 rally_point;
     void (*create_unit)(struct game_entity *);
 } Queued_Build;
 
@@ -148,6 +155,7 @@ typedef struct component_building
 {
     BUILDING_TYPE building_type;
     Array *queued_builds;
+    float *rally_point;
     void (*update_building_component)(struct game_entity *);
 } Component_Building;
 
@@ -194,10 +202,12 @@ typedef struct component_combat
 
 typedef struct component_builder
 {
+    BUILDER_STATE state;
     int total_build_time;
     int build_time;
     int build_speed;
     BUILDING_TYPE building_entity_type;
+    vec3 building_location;
     void (*update_builder_component)(struct game_entity *);
 } Component_Builder;
 
@@ -212,6 +222,7 @@ typedef struct game_entity
 
     /** Command Queue */
     Array *command_queue;
+    void (*update_command_queue)(struct game_entity *);
 
     /** Harvesting Data */
     Component_Harvest *harvester_component;
@@ -242,3 +253,7 @@ static char DEFAULT_ANIMATION_IDLE[] = "DEFAULT_ANIMATION_IDLE";
 static char DEFAULT_ANIMATION_WALKING[] = "DEFAULT_ANIMATION_WALKING";
 
 Game_Entity *create_game_entity(Entity *entity, int player_slot);
+
+/** Commands */
+void command_entity(Game_Entity *game_entity, Queued_Command *command, short should_clear_queue);
+void complete_command(Game_Entity *game_entity);

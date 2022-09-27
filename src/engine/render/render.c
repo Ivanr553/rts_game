@@ -59,6 +59,7 @@ void use_shader(Render_Item *render_item, int shader_id)
         glUniform3f(glGetUniformLocation(shader_id, "light_pos"), light_pos[0], light_pos[1], light_pos[2]);
         glUniform1i(glGetUniformLocation(shader_id, "texture_id"), 0);
         glUniform1f(glGetUniformLocation(shader_id, "scale"), 1);
+        glUniform1f(glGetUniformLocation(shader_id, "opacity"), render_item->opacity);
     }
     else if (shader_id == light_shader_id)
     {

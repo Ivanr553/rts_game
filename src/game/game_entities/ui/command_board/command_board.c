@@ -7,12 +7,13 @@
 
 void init_command_board(void)
 {
-    float width = 1.5;
-    float height = width * (float)((double)viewportWidth / (double)viewportHeight) * (float)((double)120 / (double)500);
+    float aspect_ratio = (float)((double)viewportWidth / (double)viewportHeight);
+    float width = COMMABD_BOARD_WIDTH;
+    float height = width * aspect_ratio * (float)((double)120 / (double)500);
     int sprite_sheet_size[2] = {1, 1};
     int sprite_size[2] = {500, 120};
     vec2 size = {width, height};
-    vec3 pos = {1 - width / 2, -height * 1.065, 0};
+    vec3 pos = {1 - width / 2, -1 + (height / 2), 0};
 
     /** Entity */
     Entity *entity = create_entity(NULL, pos);
@@ -33,6 +34,6 @@ void init_command_board(void)
     render_item->should_ignore_camera = 1;
 
     // /** Render Item */
-    init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
+    init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL, 1);
     bind_render_item_data(render_item);
 };

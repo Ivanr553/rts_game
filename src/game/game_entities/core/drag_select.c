@@ -22,7 +22,7 @@ void init_drag_select(void)
     render_item->should_ignore_camera = 1 - SHOW_DRAG_ON_MAP;
 
     append_item_to_render_item(render_item, entity);
-    init_render_item(render_item, pos, entity->size, NULL, (vec4){0, 1, 0, 1}, NULL, NULL);
+    init_render_item(render_item, pos, entity->size, NULL, (vec4){0, 1, 0, 1}, NULL, NULL, 1);
     bind_render_item_data(render_item);
 
     add_entity(entity);

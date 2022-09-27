@@ -27,7 +27,7 @@ void render_text_in_world(char *c, vec3 pos)
 
         add_shader(character_render_item, 0);
         add_sprite_sheet_data(character_render_item, sprite_size, sprite_sheet_size);
-        init_render_item(character_render_item, new_pos, size, NULL, NULL, offset, NULL);
+        init_render_item(character_render_item, new_pos, size, NULL, NULL, offset, NULL, 1);
         bind_render_item_data(character_render_item);
         add_texture(character_render_item, "assets/UI/Text.png");
 

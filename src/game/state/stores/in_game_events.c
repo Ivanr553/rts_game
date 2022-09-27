@@ -39,14 +39,6 @@ void handle_in_game_event(IN_GAME_EVENT event)
     case IN_GAME_EVENT_COMMAND_BUTTON_10:
     case IN_GAME_EVENT_COMMAND_BUTTON_11:
     case IN_GAME_EVENT_COMMAND_BUTTON_12:
-    case IN_GAME_EVENT_COMMAND_BUTTON_13:
-    case IN_GAME_EVENT_COMMAND_BUTTON_14:
-    case IN_GAME_EVENT_COMMAND_BUTTON_15:
-    case IN_GAME_EVENT_COMMAND_BUTTON_16:
-    case IN_GAME_EVENT_COMMAND_BUTTON_17:
-    case IN_GAME_EVENT_COMMAND_BUTTON_18:
-    case IN_GAME_EVENT_COMMAND_BUTTON_19:
-    case IN_GAME_EVENT_COMMAND_BUTTON_20:
     {
         Array *command_button_ids = game_global.game_stores.in_game_store.command_button_ids;
 

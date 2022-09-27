@@ -67,6 +67,7 @@ SDL_Window *render_init_window(u32 width, u32 height)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_SCISSOR_TEST);
     glDepthFunc(GL_LEQUAL);
+    glEnable(GL_TEXTURE_2D);
     glScissor(0, 0, viewportWidth, viewportHeight);
     glViewport(0, 0, viewportWidth, viewportHeight);
 
@@ -80,8 +81,8 @@ SDL_Window *render_init_window(u32 width, u32 height)
 
 void add_texture_data_to_texture_group(Texture_Group *texture_groups, char *textures[SUPPORTED_TEXTURE_COUNT], int t)
 {
-    Texture_Group texture_group;
-    texture_group.render_items = create_array(INITIAL_ENTITY_ARRAY_COUNT, sizeof(Render_Item));
+    Texture_Group *texture_group = calloc(1, sizeof(Texture_Group));
+    texture_group->render_items = create_array(INITIAL_ENTITY_ARRAY_COUNT, sizeof(Render_Item));
 
     Texture_Data *texture_data = calloc(1, sizeof(Texture_Data));
     texture_data->file_path = textures[t];
@@ -90,15 +91,19 @@ void add_texture_data_to_texture_group(Texture_Group *texture_groups, char *text
     Texture_Data *texture_data_in_map_ptr = get_value_from_map(global.render.texture_map, texture_data->file_path);
     if (texture_data_in_map_ptr)
     {
-        texture_group.texture_id = texture_data_in_map_ptr->texture;
-        texture_groups[t] = texture_group;
+        printf("Found texture in map %s with id: %d\n", texture_data->file_path, *texture_data_in_map_ptr->texture);
+        texture_group->texture_id = texture_data_in_map_ptr->texture;
+        texture_groups[t] = *texture_group;
         return;
     }
 
     if (strcmp(EMPTY_TEXTURE, texture_data->file_path) == 0)
     {
         printf("Found empty texture slot\n");
-        texture_groups[t] = texture_group;
+        texture_groups[t] = *texture_group;
+        int *empty_texture_id = calloc(1, sizeof(int));
+        empty_texture_id[0] = -1;
+        texture_data->texture = empty_texture_id;
         set_value_in_map(global.render.texture_map, texture_data->file_path, texture_data);
         return;
     }
@@ -113,6 +118,8 @@ void add_texture_data_to_texture_group(Texture_Group *texture_groups, char *text
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
 
+    printf("New textured %s with  id: %d\n", texture_data->file_path, *texture);
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -124,8 +131,8 @@ void add_texture_data_to_texture_group(Texture_Group *texture_groups, char *text
     texture_data->texture = texture;
     set_value_in_map(global.render.texture_map, texture_data->file_path, texture_data);
 
-    texture_group.texture_id = texture;
-    texture_groups[t] = texture_group;
+    texture_group->texture_id = texture;
+    texture_groups[t] = *texture_group;
 
     glBindTexture(GL_TEXTURE_2D, 0);
     free(bytes);
@@ -150,16 +157,17 @@ void init_v2()
 
     char *textures[SUPPORTED_TEXTURE_COUNT] = {
         EMPTY_TEXTURE,
+        "assets/UI/Max-Controls.png",
         "assets/maps/Tile_Set.png",
         "assets/units/MAX.png",
         "assets/units/Alf.png",
         "assets/UI/Text.png",
         "assets/props/Props_Sheet.png",
-        "assets/UI/Max-Controls.png",
         "assets/buildings/Summoning-Circle.png",
-        "assets/UI/Command-Buttons.png",
         "assets/UI/Icons.png",
-        "assets/UI/Command-Board-Icons.png"};
+        "assets/UI/Command-Buttons.png",
+        "assets/units/SPIKE.png",
+    };
 
     Shader_Group *shader_groups = calloc(SUPPORTED_SHADER_COUNT, sizeof(Shader_Group));
 

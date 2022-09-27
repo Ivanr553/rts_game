@@ -86,7 +86,7 @@ void handle_events(void)
         }
     }
 
-    if(global.input.escape == KS_PRESSED)
+    if (global.input.escape == KS_PRESSED)
     {
         handle_in_game_event(IN_GAME_EVENT_ESCAPE);
     }
@@ -107,51 +107,39 @@ void handle_events(void)
     {
         handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_4);
     }
-    if (global.input.t == KS_PRESSED)
-    {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_5);
-    }
 
     if (global.input.a == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_6);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_5);
     }
     if (global.input.s == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_7);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_6);
     }
     if (global.input.d == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_8);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_7);
     }
     if (global.input.f == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_9);
-    }
-    if (global.input.g == KS_PRESSED)
-    {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_10);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_8);
     }
 
     if (global.input.z == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_16);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_9);
     }
     if (global.input.x == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_17);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_10);
     }
     if (global.input.c == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_18);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_11);
     }
     if (global.input.v == KS_PRESSED)
     {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_19);
-    }
-    if (global.input.b == KS_PRESSED)
-    {
-        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_20);
+        handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_12);
     }
 };
 
@@ -168,6 +156,9 @@ void handle_global_event(Global_Event event)
                 break;
             }
 
+            float mouse_pos[3];
+            get_mouse_pos_on_map(mouse_pos);
+
             Array *entity_ids = game_global.game_stores.in_game_store.selected_units_by_id;
 
             for (int i = 0; i < entity_ids->len; i++)
@@ -181,22 +172,25 @@ void handle_global_event(Global_Event event)
                     return;
                 }
 
-                float mouse_pos[3];
-                get_mouse_pos_on_map(mouse_pos);
-                vec3 new_pos = {mouse_pos[0], mouse_pos[1], entity->pos[2]};
+                Game_Entity *game_entity = entity->entity_class;
 
+                vec3 new_pos = {mouse_pos[0], mouse_pos[1], entity->pos[2]};
                 move_to(entity, new_pos);
 
-                if (entity->entity_class_type == ENTITY_CLASS_UNIT)
+                if (game_entity->building_component)
                 {
-                    Game_Entity *unit_entity = entity->entity_class;
+                    game_entity->building_component->rally_point[0] = mouse_pos[0];
+                    game_entity->building_component->rally_point[1] = mouse_pos[1];
+                    game_entity->building_component->rally_point[2] = mouse_pos[2];
+                    printf("Rally point set\n");
+                    continue;
+                }
 
-                    if (unit_entity->harvester_component)
+                if (game_entity->harvester_component)
+                {
+                    if (game_entity->harvester_component->state != HARVESTING_STATE_IDLE)
                     {
-                        if (unit_entity->harvester_component->state != HARVESTING_STATE_IDLE)
-                        {
-                            stop_harvesting(unit_entity);
-                        }
+                        stop_harvesting(game_entity);
                     }
                 }
 
@@ -216,14 +210,37 @@ void handle_global_event(Global_Event event)
         float mouse_pos[3];
         get_mouse_pos_on_map(mouse_pos);
 
-        if(game_global.game_stores.in_game_store.is_placing_building)
+        Array *selected_units = game_global.game_stores.in_game_store.selected_units_by_id;
+        if (game_global.game_stores.in_game_store.is_placing_building)
         {
-            place_building(mouse_pos);
+            Build_Command *build_command = calloc(1, sizeof(Build_Command));
+            build_command->pos[0] = mouse_pos[0];
+            build_command->pos[1] = mouse_pos[1];
+            build_command->pos[2] = 0;
+            build_command->total_build_time = 100;
+            build_command->type = game_global.game_stores.in_game_store.building_being_placed;
+
+            Queued_Command *command = calloc(1, sizeof(Queued_Command));
+            command->queued_command_data = build_command;
+            command->type = QUEUED_COMMAND_TYPE_BUILD;
+
+            long entity_id = *((long *)get_item_from_array(selected_units, 0));
+            Entity *entity = get_entity_by_id(entity_id);
+
+            if (!entity)
+            {
+                printf("No entity selected when trying to start build command\n");
+                return;
+            }
+            Game_Entity *game_entity = entity->entity_class;
+
+            command_entity(game_entity, command, 0);
+
+            hide_building_selection();
             return;
         }
 
-        Array *selected_units = create_array(SELECTED_UNIT_MAX_COUNT, sizeof(long));
-
+        Array *new_selected_units = create_array(SELECTED_UNIT_MAX_COUNT, sizeof(long));
         Array *entities = global.render.entities;
         for (int i = 0; i < entities->len; i++)
         {
@@ -240,15 +257,15 @@ void handle_global_event(Global_Event event)
             {
                 if (is_point_within_circle(entity->pos[0], entity->pos[1], entity->unit_radius, mouse_pos[0], mouse_pos[1]))
                 {
-                    append_array(selected_units, &entity->id);
+                    append_array(new_selected_units, &entity->id);
                     break;
                 }
             }
         }
 
-        if (selected_units->len)
+        if (new_selected_units->len)
         {
-            select_units(selected_units);
+            select_units(new_selected_units);
         }
 
         break;

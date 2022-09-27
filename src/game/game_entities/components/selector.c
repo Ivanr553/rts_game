@@ -34,7 +34,7 @@ void create_selection(Entity *entity_to_bind_to)
     select_entity->size[1] = entity_to_bind_to->unit_radius * 2;
     Render_Item *render_item = get_render_item(1, RENDER_ITEM_CIRCLE, SHADER_COLOR, EMPTY_TEXTURE);
     append_item_to_render_item(render_item, select_entity);
-    init_render_item(render_item, (vec3){entity_to_bind_to->pos[0], entity_to_bind_to->pos[1], 0.05}, select_entity->size, NULL, (vec4){0, 0, 0, 1}, NULL, NULL);
+    init_render_item(render_item, (vec3){entity_to_bind_to->pos[0], entity_to_bind_to->pos[1], 0.05}, select_entity->size, NULL, (vec4){0, 0, 0, 1}, NULL, NULL, 1);
     bind_render_item_data(render_item);
 
     select_entity->render_item = render_item;

@@ -544,9 +544,10 @@ Render_Item *add_animation(Render_Item *render_item, Animation *animation)
     return render_item;
 };
 
-Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color, int offset[2], float points[12])
+Render_Item *init_render_item(Render_Item *render_item, float *pos, vec2 size, vec3 rotation, vec4 color, int offset[2], float points[12], float opacity)
 {
     // printf("Initializing item\n");
+    render_item->opacity = opacity;
 
     if (rotation)
     {

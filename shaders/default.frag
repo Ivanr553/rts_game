@@ -12,6 +12,7 @@ in vec3 pos;
 uniform sampler2D texture_id;
 uniform vec4 light_color;
 uniform vec3 light_pos;
+uniform float opacity;
 
 void main() {
 
@@ -26,5 +27,5 @@ void main() {
     if(texture_color.a < 0.1)
         discard;
 
-    frag_color = texture_color;
+    frag_color = vec4(texture_color.x, texture_color.y, texture_color.z, opacity);
 }

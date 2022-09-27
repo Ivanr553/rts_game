@@ -54,7 +54,7 @@ Game_Entity *create_resource(RESOURCE type, vec3 pos)
     if (entity->vbo_pos == 0)
     {
         add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, entity->size, DEFAULT_UNIT_ROTATION, NULL, entity->offset, NULL);
+        init_render_item(render_item, pos, entity->size, DEFAULT_UNIT_ROTATION, NULL, entity->offset, NULL, 1);
         bind_render_item_data(render_item);
     }
 

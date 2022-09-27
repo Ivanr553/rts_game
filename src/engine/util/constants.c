@@ -2,7 +2,7 @@
 #include <linmath.h>
 
 // ENGINE CONSTANTS
-const int viewportWidth = 1920;
+const int viewportWidth = 1800;
 const int viewportHeight = 1080;
 
 // DEBUG CONSTANTS

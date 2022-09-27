@@ -27,6 +27,11 @@ short handle_entity_class_updates(Entity *entity)
         return 0;
     }
 
+    if (game_entity->update_command_queue)
+    {
+        game_entity->update_command_queue(game_entity);
+    }
+
     if (game_entity->combat_component)
     {
         game_entity->combat_component->update_combat_component(game_entity);
@@ -50,6 +55,11 @@ short handle_entity_class_updates(Entity *entity)
     if (game_entity->ui_component && game_entity->ui_component->update_ui_entity)
     {
         game_entity->ui_component->update_ui_entity(game_entity);
+    }
+
+    if(game_entity->builder_component)
+    {
+        game_entity->builder_component->update_builder_component(game_entity);
     }
 
     return 0;

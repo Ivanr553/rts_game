@@ -179,7 +179,7 @@ Game_Entity *get_command_board_info_entity(float *pos, int *offset, Game_Entity 
         render_item->should_ignore_camera = 1;
 
         add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
+        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL, 1);
         bind_render_item_data(render_item);
     }
 
@@ -226,7 +226,7 @@ Game_Entity *get_loading_bar_entity(Game_Entity *game_entity)
         render_item->should_ignore_camera = 1;
 
         add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
+        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL, 1);
         bind_render_item_data(render_item);
     }
 

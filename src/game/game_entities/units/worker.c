@@ -60,7 +60,7 @@ Game_Entity *create_worker(vec3 pos, GAME_ENTITY_TYPE unit_type)
 
         /** Render Item */
         add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
+        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL, 1);
         bind_render_item_data(render_item);
     }
 

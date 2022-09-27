@@ -51,7 +51,7 @@ void init_player_crystal_icon(void)
         int offset[2] = {1, 1};
 
         add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, entity->size, NULL, NULL, offset, NULL);
+        init_render_item(render_item, pos, entity->size, NULL, NULL, offset, NULL, 1);
         bind_render_item_data(render_item);
     }
 
@@ -90,7 +90,7 @@ void init_player_crystal_text(void)
     entity->size[1] = size[1];
 
     add_sprite_sheet_data(entity->render_item, sprite_size, sprite_sheet_size);
-    init_render_item(entity->render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
+    init_render_item(entity->render_item, pos, entity->size, NULL, NULL, entity->offset, NULL, 1);
     bind_render_item_data(entity->render_item);
     add_entity(entity);
 }

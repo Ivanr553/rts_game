@@ -154,24 +154,22 @@ Map_Value *traverse_map_linked_list(Map_Value *map_value, char *key, int use_lon
             }
 
             next_map_value = next_map_value->next;
-            value_key = next_map_value->key;
         }
 
         return next_map_value->value;
     }
 
-    char *value_key = map_value->key;
+    char *value_key = key;
     Map_Value *next_map_value = map_value;
 
     while (strcmp(value_key, next_map_value->key) != 0)
     {
-        if (!next_map_value)
+        if (!next_map_value->next)
         {
             return NULL;
         }
 
         next_map_value = next_map_value->next;
-        value_key = next_map_value->key;
     }
 
     return next_map_value->value;

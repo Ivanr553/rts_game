@@ -36,7 +36,14 @@ void command_button_build(void)
 
 void create_max(Game_Entity *building_game_component)
 {
-    create_worker((vec3){building_game_component->entity->pos[0] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, building_game_component->entity->pos[1] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, DEFAULT_UNIT_Z}, GAME_ENTITY_TYPE_MAX);
+    Game_Entity *worker = create_worker((vec3){building_game_component->entity->pos[0] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, building_game_component->entity->pos[1] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, DEFAULT_UNIT_Z}, GAME_ENTITY_TYPE_MAX);
+    move_to(worker->entity, building_game_component->building_component->rally_point);
+}
+
+void create_spike(Game_Entity *building_game_component)
+{
+    Game_Entity *spike = create_unit((vec3){building_game_component->entity->pos[0] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, building_game_component->entity->pos[1] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, DEFAULT_UNIT_Z}, GAME_ENTITY_TYPE_SPIKE);
+    move_to(spike->entity, building_game_component->building_component->rally_point);
 }
 
 void command_button_create_unit(Game_Entity *ui_game_entity)
@@ -47,18 +54,44 @@ void command_button_create_unit(Game_Entity *ui_game_entity)
         return;
     }
 
+    Game_Entity *building_game_entity = ui_game_entity->ui_component->game_entity_pointer;
+    Component_Building *building_component = building_game_entity->building_component;
+
     Queued_Build *queued_build = calloc(1, sizeof(Queued_Build));
     queued_build->build_time = 500;
     queued_build->total_build_time = 500;
     queued_build->icon_offset[0] = 1;
     queued_build->icon_offset[1] = 3;
     queued_build->create_unit = create_max;
+    queued_build->rally_point[0] = building_component->rally_point[0];
+    queued_build->rally_point[1] = building_component->rally_point[1];
+    queued_build->rally_point[2] = building_component->rally_point[2];
+
+    append_array(building_component->queued_builds, queued_build);
+};
+
+void command_button_build_spike(Game_Entity *ui_game_entity)
+{
+    if (!spend_resources(100, 0))
+    {
+        printf("Not enough resources");
+        return;
+    }
 
     Game_Entity *building_game_entity = ui_game_entity->ui_component->game_entity_pointer;
     Component_Building *building_component = building_game_entity->building_component;
 
+    Queued_Build *queued_build = calloc(1, sizeof(Queued_Build));
+    queued_build->build_time = 800;
+    queued_build->total_build_time = 800;
+    queued_build->icon_offset[0] = 1;
+    queued_build->icon_offset[1] = 3;
+    queued_build->create_unit = create_spike;
+    queued_build->rally_point[0] = building_component->rally_point[0];
+    queued_build->rally_point[1] = building_component->rally_point[1];
+    queued_build->rally_point[2] = building_component->rally_point[2];
+
     append_array(building_component->queued_builds, queued_build);
-    printf("Appended\n");
 };
 
 void command_button_build_base(Game_Entity *ui_game_entity)
@@ -75,20 +108,28 @@ void command_button_build_base(Game_Entity *ui_game_entity)
     }
     else
     {
+        game_global.game_stores.in_game_store.building_being_placed = BUILDING_TYPE_BASE;
         show_building_selection(3, 3);
     }
+}
 
-    // Component_Builder *builder_component = ui_game_entity->ui_component->game_entity_pointer->builder_component;
-    // builder_component->build_speed = 200;
-    // builder_component->build_time = 200;
-    // builder_component->building_entity_type = BUILDING_TYPE_BASE;
+void command_button_build_factory(Game_Entity *ui_game_entity)
+{
+    if (ui_game_entity->ui_component->game_entity_pointer)
+    {
+        printf("No parent entity pointer when attempting to factory\n");
+        return;
+    }
 
-    // float snapped_pos[3] = {0, 0, 0};
-    // float size[2] = {3, 3};
-
-    // snap_to_map_grid(snapped_pos, size);
-
-    // create_building(snapped_pos, size, BUILDING_TYPE_BASE);
+    if (game_global.game_stores.in_game_store.is_placing_building)
+    {
+        hide_building_selection();
+    }
+    else
+    {
+        game_global.game_stores.in_game_store.building_being_placed = BUILDING_TYPE_FACTORY;
+        show_building_selection(3, 3);
+    }
 }
 
 void *get_on_click_and_bind_entity(Game_Entity *game_entity, COMMAND_BUTTON button)
@@ -103,8 +144,13 @@ void *get_on_click_and_bind_entity(Game_Entity *game_entity, COMMAND_BUTTON butt
         return command_button_stop;
     case COMMAND_BUTTON_BUILD_MAX:
         return command_button_create_unit;
+    case COMMAND_BUTTON_BUILD_SPIKE:
+        return command_button_build_spike;
     case COMMAND_BUTTON_BUILD_BASE:
         return command_button_build_base;
+    case COMMAND_BUTTON_BUILD_FACTORY:
+        return command_button_build_factory;
+
     default:
         return NULL;
     }
@@ -139,17 +185,24 @@ int *get_button_offset(COMMAND_BUTTON button)
         offset[0] = 2;
         offset[1] = 3;
         break;
+    case COMMAND_BUTTON_BUILD_FACTORY:
+        offset[0] = 3;
+        offset[1] = 3;
+        break;
     case COMMAND_BUTTON_ESCAPE:
         offset[0] = 6;
         offset[1] = 1;
         break;
+    case COMMAND_BUTTON_BUILD_SPIKE:
     case COMMAND_BUTTON_BUILD_MAX:
         offset[0] = 1;
         offset[1] = 3;
         break;
 
     default:
-        return NULL;
+        offset[0] = 1;
+        offset[1] = 1;
+        break;
     }
     return offset;
 };
@@ -157,8 +210,10 @@ int *get_button_offset(COMMAND_BUTTON button)
 Game_Entity *add_command_board_button(int index, COMMAND_BUTTON button, Game_Entity *parent_entity)
 {
     /** Initializing data */
-    float width = 0.059;
-    float height = width * (float)((double)viewportWidth / (double)viewportHeight);
+    float aspect_ratio = (float)((double)viewportWidth / (double)viewportHeight);
+    float width = COMMAND_BOARD_BUTTON_SIZE;
+    float height = width * aspect_ratio;
+    float command_board_height = COMMABD_BOARD_WIDTH * aspect_ratio * (float)((double)120 / (double)500);
 
     int *offset = get_button_offset(button);
     int sprite_sheet_size[2] = {TILE_SPRITE_SHEET_COUNT, TILE_SPRITE_SHEET_COUNT};
@@ -166,8 +221,8 @@ Game_Entity *add_command_board_button(int index, COMMAND_BUTTON button, Game_Ent
     vec2 size = {width, height};
 
     float *pos = calloc(3, sizeof(float));
-    pos[0] = 0.6515 + ((index % COMMAND_BOARD_BUTTON_ROW_COUNT) * 0.0665);
-    pos[1] = -0.555 - (floor(index / COMMAND_BOARD_BUTTON_ROW_COUNT) * 0.11655);
+    pos[0] = COMMAND_BOARD_BUTTON_START_X + ((index % COMMAND_BOARD_BUTTON_ROW_COUNT) * (width + COMMAND_BOARD_BUTTON_GAP));
+    pos[1] = (-1 + (command_board_height / 2)) - (COMMAND_BOARD_BUTTON_START_Y * aspect_ratio) - (floor(index / COMMAND_BOARD_BUTTON_ROW_COUNT) * (height + (COMMAND_BOARD_BUTTON_GAP * aspect_ratio)));
     pos[2] = 0;
 
     /** Entity */
@@ -184,7 +239,7 @@ Game_Entity *add_command_board_button(int index, COMMAND_BUTTON button, Game_Ent
     add_ui_component(game_entity, UI_TYPE_COMMAND_BOARD_BUTTON_1 + index, parent_entity, on_click, NULL);
 
     /** Render Item */
-    Render_Item *render_item = get_render_item(1, RENDER_ITEM_QUAD, SHADER_DEFAULT, "assets/UI/Command-Buttons.png");
+    Render_Item *render_item = get_render_item(0, RENDER_ITEM_QUAD, SHADER_DEFAULT, "assets/UI/Command-Buttons.png");
     append_item_to_render_item(render_item, entity);
 
     /** Only perform for the first entity */
@@ -194,7 +249,7 @@ Game_Entity *add_command_board_button(int index, COMMAND_BUTTON button, Game_Ent
         render_item->should_ignore_camera = 1;
 
         add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
-        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL);
+        init_render_item(render_item, pos, entity->size, NULL, NULL, entity->offset, NULL, 1);
         bind_render_item_data(render_item);
     }
 
@@ -258,10 +313,9 @@ int *get_command_buttons_by_unit_type(GAME_ENTITY_TYPE type)
     case GAME_ENTITY_TYPE_MAX:
     case GAME_ENTITY_TYPE_ALF:
         int worker_buttons[COMMAND_BOARD_BUTTON_COUNT] = {
-            COMMAND_BUTTON_MOVE, COMMAND_BUTTON_ATTACK, COMMAND_BUTTON_HOLD, COMMAND_BUTTON_STOP, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            COMMAND_BUTTON_BUILD, 0, 0, 0, 0};
+            COMMAND_BUTTON_MOVE, COMMAND_BUTTON_ATTACK, COMMAND_BUTTON_HOLD, COMMAND_BUTTON_STOP,
+            0, 0, 0, 0,
+            COMMAND_BUTTON_BUILD, 0, 0, 0};
 
         for (int i = 0; i < COMMAND_BOARD_BUTTON_COUNT; i++)
         {
@@ -269,12 +323,23 @@ int *get_command_buttons_by_unit_type(GAME_ENTITY_TYPE type)
         }
         break;
 
+    case GAME_ENTITY_TYPE_SPIKE:
+        int default_unit_buttons[COMMAND_BOARD_BUTTON_COUNT] = {
+            COMMAND_BUTTON_MOVE, COMMAND_BUTTON_ATTACK, COMMAND_BUTTON_HOLD, COMMAND_BUTTON_STOP,
+            0, 0, 0, 0,
+            0, 0, 0, 0};
+
+        for (int i = 0; i < COMMAND_BOARD_BUTTON_COUNT; i++)
+        {
+            buttons[i] = default_unit_buttons[i];
+        }
+        break;
+
     case GAME_ENTITY_TYPE_BASE:
         int base_buttons[COMMAND_BOARD_BUTTON_COUNT] = {
-            COMMAND_BUTTON_BUILD_MAX, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0};
+            COMMAND_BUTTON_BUILD_MAX, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0};
 
         for (int i = 0; i < COMMAND_BOARD_BUTTON_COUNT; i++)
         {
@@ -282,8 +347,29 @@ int *get_command_buttons_by_unit_type(GAME_ENTITY_TYPE type)
         }
         break;
 
+    case GAME_ENTITY_TYPE_FACTORY:
+        int factory_buttons[COMMAND_BOARD_BUTTON_COUNT] = {
+            COMMAND_BUTTON_BUILD_SPIKE, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0};
+
+        for (int i = 0; i < COMMAND_BOARD_BUTTON_COUNT; i++)
+        {
+            buttons[i] = factory_buttons[i];
+        }
+        break;
+
     default:
-        return NULL;
+        int default_buttons[COMMAND_BOARD_BUTTON_COUNT] = {
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0};
+
+        for (int i = 0; i < COMMAND_BOARD_BUTTON_COUNT; i++)
+        {
+            buttons[i] = default_buttons[i];
+        }
+        break;
     }
     return buttons;
 };
@@ -292,10 +378,9 @@ int *get_building_command_buttons(void)
 {
     int *buttons = calloc(COMMAND_BOARD_BUTTON_COUNT, sizeof(int));
     int local[COMMAND_BOARD_BUTTON_COUNT] = {
-        COMMAND_BUTTON_BUILD_BASE, 0, 0, 0, COMMAND_BUTTON_ESCAPE,
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0};
+        COMMAND_BUTTON_BUILD_BASE, COMMAND_BUTTON_BUILD_FACTORY, 0, COMMAND_BUTTON_ESCAPE,
+        0, 0, 0, 0,
+        0, 0, 0, 0};
 
     for (int i = 0; i < COMMAND_BOARD_BUTTON_COUNT; i++)
     {
