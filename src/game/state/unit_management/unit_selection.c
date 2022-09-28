@@ -50,6 +50,11 @@ void select_units(Array *entity_id_array)
 
             create_selection(game_entity->entity);
         }
+
+        if(game_entity->building_component)
+        {
+            create_rally_point(game_entity->entity);
+        }
     }
 
     game_global.game_stores.in_game_store.selected_units_by_id = entity_id_array;

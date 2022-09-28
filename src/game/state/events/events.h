@@ -1,5 +1,7 @@
 #pragma once
 
+#include <linmath.h>
+
 typedef enum global_event
 {
     _GLOBAL_EVENT,
@@ -36,3 +38,5 @@ void handle_events(void);
 void handle_global_event(Global_Event event);
 
 short handle_ui_element_click(float x, float y);
+
+void handle_right_click_in_game(vec3 pos);

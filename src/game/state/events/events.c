@@ -151,15 +151,15 @@ void handle_global_event(Global_Event event)
     {
         if (game_global.state == IN_GAME)
         {
-            if (handle_right_click_unit_interaction())
-            {
-                break;
-            }
 
             float mouse_pos[3];
             get_mouse_pos_on_map(mouse_pos);
-
             Array *entity_ids = game_global.game_stores.in_game_store.selected_units_by_id;
+
+            if (handle_right_click_unit_interaction(mouse_pos, entity_ids))
+            {
+                break;
+            }
 
             for (int i = 0; i < entity_ids->len; i++)
             {
@@ -182,7 +182,6 @@ void handle_global_event(Global_Event event)
                     game_entity->building_component->rally_point[0] = mouse_pos[0];
                     game_entity->building_component->rally_point[1] = mouse_pos[1];
                     game_entity->building_component->rally_point[2] = mouse_pos[2];
-                    printf("Rally point set\n");
                     continue;
                 }
 

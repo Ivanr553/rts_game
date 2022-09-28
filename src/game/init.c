@@ -26,7 +26,7 @@ void initialize_state(void)
 void initialize_map(void)
 {
     Game_Map *map = calloc(1, sizeof(Game_Map));
-    init_game_map(map, "tilesets/test_map_2.json");
+    init_game_map(map, "tilesets/Lost-Ruins.json");
 
     global.camera.position[0] = map->start_x;
     global.camera.position[1] = map->start_y - MAP_TILE_OFFSET_FOR_CAMERA;

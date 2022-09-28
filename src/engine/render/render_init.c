@@ -158,7 +158,7 @@ void init_v2()
     char *textures[SUPPORTED_TEXTURE_COUNT] = {
         EMPTY_TEXTURE,
         "assets/UI/Max-Controls.png",
-        "assets/maps/Tile_Set.png",
+        "assets/maps/Lost-Ruins-Tileset.png",
         "assets/units/MAX.png",
         "assets/units/Alf.png",
         "assets/UI/Text.png",

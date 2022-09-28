@@ -5,6 +5,7 @@
 #include "../../../state/game_global.h"
 #include "../building/building_ui.h"
 #include "../../components/components.h"
+#include "../../../state/events/events.h"
 
 void command_button_stop(void)
 {
@@ -36,8 +37,16 @@ void command_button_build(void)
 
 void create_max(Game_Entity *building_game_component)
 {
+    Array *_array = create_array(1, sizeof(Game_Entity));
     Game_Entity *worker = create_worker((vec3){building_game_component->entity->pos[0] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, building_game_component->entity->pos[1] + building_game_component->entity->unit_radius + (float)(rand() % 20) / 100, DEFAULT_UNIT_Z}, GAME_ENTITY_TYPE_MAX);
-    move_to(worker->entity, building_game_component->building_component->rally_point);
+
+    append_array(_array, &worker->entity->id);
+    if (!handle_right_click_unit_interaction(building_game_component->building_component->rally_point, _array))
+    {
+        move_to(worker->entity, building_game_component->building_component->rally_point);
+    }
+
+    free(_array);
 }
 
 void create_spike(Game_Entity *building_game_component)

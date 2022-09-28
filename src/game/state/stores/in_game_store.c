@@ -38,11 +38,8 @@ void control_group_add_unit(Control_Group_Slot slot, long id)
     append_array(game_global.game_stores.in_game_store.control_groups[slot].unit_ids, &id);
 };
 
-short handle_right_click_unit_interaction(void)
+short handle_right_click_unit_interaction(vec3 pos_on_map, Array *entity_ids)
 {
-    float mouse_pos[3];
-    get_mouse_pos_on_map(mouse_pos);
-
     Array *entities = global.render.entities;
 
     for (int i = 0; i < entities->len; i++)
@@ -55,13 +52,17 @@ short handle_right_click_unit_interaction(void)
             continue;
         }
 
-        if (is_point_within_circle(entity->pos[0], entity->pos[1], entity->unit_radius, mouse_pos[0], mouse_pos[1]))
+        if (is_point_within_circle(entity->pos[0], entity->pos[1], entity->unit_radius, pos_on_map[0], pos_on_map[1]))
         {
             Game_Entity *clicked_game_entity = entity->entity_class;
 
+            if (!clicked_game_entity)
+            {
+                continue;
+            }
+
             if (clicked_game_entity->player_slot != game_global.game_stores.in_game_store.player->player_slot)
             {
-                Array *entity_ids = game_global.game_stores.in_game_store.selected_units_by_id;
                 if (entity_ids->len)
                 {
                     for (int e = 0; e < entity_ids->len; e++)
@@ -86,7 +87,6 @@ short handle_right_click_unit_interaction(void)
 
             if (clicked_game_entity->resource_component)
             {
-                Array *entity_ids = game_global.game_stores.in_game_store.selected_units_by_id;
                 if (entity_ids->len)
                 {
                     for (int e = 0; e < entity_ids->len; e++)
@@ -102,6 +102,14 @@ short handle_right_click_unit_interaction(void)
                         if (selected_unit_game_entity->harvester_component)
                         {
                             start_harvesting(selected_unit_game_entity, clicked_game_entity);
+                        }
+
+                        if (selected_unit_game_entity->building_component)
+                        {
+                            selected_unit_game_entity->building_component->rally_point[0] = pos_on_map[0];
+                            selected_unit_game_entity->building_component->rally_point[1] = pos_on_map[1];
+                            selected_unit_game_entity->building_component->rally_point[2] = pos_on_map[2];
+                            continue;
                         }
                     }
                 }

@@ -34,8 +34,8 @@ void init_game_map(Game_Map *game_map, char *file_path)
     game_map->width = game_map->x_len * TILE_SPRITE_SIZE;
     game_map->height = game_map->y_len * TILE_SPRITE_SIZE;
 
-    game_map->start_x = 23 - (game_map->x_len / 2);
-    game_map->start_y = (game_map->y_len / 2) - 19;
+    game_map->start_x = 14 - (game_map->x_len / 2);
+    game_map->start_y = (game_map->y_len / 2) - 12;
 
     game_global.game_stores.in_game_store.map = game_map;
 
@@ -47,7 +47,7 @@ void create_map_from_tiles(void)
     f32 *vertices;
     u32 *indices;
 
-    Render_Item *render_item = get_render_item(0, RENDER_ITEM_QUAD, SHADER_DEFAULT, "assets/maps/Tile_Set.png");
+    Render_Item *render_item = get_render_item(0, RENDER_ITEM_QUAD, SHADER_DEFAULT, "assets/maps/Lost-Ruins-Tileset.png");
     // game_global.game_stores.in_game_store.map->tile_set_len = 10;
 
     render_item->vertices_len = game_global.game_stores.in_game_store.map->tile_set_len * DEFAULT_QUAD_VERTICES_LEN;
