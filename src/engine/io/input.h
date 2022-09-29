@@ -51,6 +51,7 @@ typedef struct input_state
     Key_State tab;
 
     /** Function Keys */
+    Key_State f3;
     Key_State f10;
 
     /** Num keys */

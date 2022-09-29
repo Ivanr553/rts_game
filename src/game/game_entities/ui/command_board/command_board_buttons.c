@@ -67,8 +67,8 @@ void command_button_create_unit(Game_Entity *ui_game_entity)
     Component_Building *building_component = building_game_entity->building_component;
 
     Queued_Build *queued_build = calloc(1, sizeof(Queued_Build));
-    queued_build->build_time = 500;
-    queued_build->total_build_time = 500;
+    queued_build->build_time = 1300;
+    queued_build->total_build_time = 1300;
     queued_build->icon_offset[0] = 1;
     queued_build->icon_offset[1] = 3;
     queued_build->create_unit = create_max;
@@ -105,6 +105,13 @@ void command_button_build_spike(Game_Entity *ui_game_entity)
 
 void command_button_build_base(Game_Entity *ui_game_entity)
 {
+
+    if (!spend_resources(400, 0))
+    {
+        printf("Not enough resources");
+        return;
+    }
+
     if (ui_game_entity->ui_component->game_entity_pointer)
     {
         printf("No parent entity pointer when attempting to build base\n");
@@ -122,8 +129,41 @@ void command_button_build_base(Game_Entity *ui_game_entity)
     }
 }
 
+void command_button_build_ram(Game_Entity *ui_game_entity)
+{
+
+    if (!can_spend_resources(100, 0))
+    {
+        printf("Not enough resources");
+        return;
+    }
+
+    if (ui_game_entity->ui_component->game_entity_pointer)
+    {
+        printf("No parent entity pointer when attempting to factory\n");
+        return;
+    }
+
+    if (game_global.game_stores.in_game_store.is_placing_building)
+    {
+        hide_building_selection();
+    }
+    else
+    {
+        game_global.game_stores.in_game_store.building_being_placed = BUILDING_TYPE_RAM;
+        show_building_selection(3, 3);
+    }
+}
+
 void command_button_build_factory(Game_Entity *ui_game_entity)
 {
+
+    if (!can_spend_resources(150, 0))
+    {
+        printf("Not enough resources");
+        return;
+    }
+
     if (ui_game_entity->ui_component->game_entity_pointer)
     {
         printf("No parent entity pointer when attempting to factory\n");
@@ -159,6 +199,8 @@ void *get_on_click_and_bind_entity(Game_Entity *game_entity, COMMAND_BUTTON butt
         return command_button_build_base;
     case COMMAND_BUTTON_BUILD_FACTORY:
         return command_button_build_factory;
+    case COMMAND_BUTTON_BUILD_RAM:
+        return command_button_build_ram;
 
     default:
         return NULL;
@@ -196,6 +238,10 @@ int *get_button_offset(COMMAND_BUTTON button)
         break;
     case COMMAND_BUTTON_BUILD_FACTORY:
         offset[0] = 3;
+        offset[1] = 3;
+        break;
+    case COMMAND_BUTTON_BUILD_RAM:
+        offset[0] = 4;
         offset[1] = 3;
         break;
     case COMMAND_BUTTON_ESCAPE:
@@ -387,7 +433,7 @@ int *get_building_command_buttons(void)
 {
     int *buttons = calloc(COMMAND_BOARD_BUTTON_COUNT, sizeof(int));
     int local[COMMAND_BOARD_BUTTON_COUNT] = {
-        COMMAND_BUTTON_BUILD_BASE, COMMAND_BUTTON_BUILD_FACTORY, 0, COMMAND_BUTTON_ESCAPE,
+        COMMAND_BUTTON_BUILD_BASE, COMMAND_BUTTON_BUILD_RAM, COMMAND_BUTTON_BUILD_FACTORY, COMMAND_BUTTON_ESCAPE,
         0, 0, 0, 0,
         0, 0, 0, 0};
 

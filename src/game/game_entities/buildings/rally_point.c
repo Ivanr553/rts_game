@@ -40,9 +40,9 @@ void create_rally_point(Entity *entity_to_bind_to)
 
     Game_Entity *game_entity = entity_to_bind_to->entity_class;
 
-    if(!game_entity->building_component)
+    if(!game_entity->building_component || !game_entity->building_component->can_rally)
     {
-        printf("Game entity does not have a building component in create rally point\n");
+        printf("Game entity does not have a building component or cannot support a rally point in create rally point\n");
         return;
     }
 

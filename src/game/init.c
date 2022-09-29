@@ -46,20 +46,13 @@ void initialize_game(void)
 
     for (int i = 0; i < test_worker_count; i++)
     {
-        int control_group = rand() % 2;
 
-        float x_deviation = game_global.game_stores.in_game_store.map->start_x + rand() % 20;
-        float y_deviation = game_global.game_stores.in_game_store.map->start_y + rand() % 20;
+        float x_deviation = game_global.game_stores.in_game_store.map->start_x - 1;
+        float y_deviation = game_global.game_stores.in_game_store.map->start_y - 0.5 - (float)((float)i / (float)10);
 
         GAME_ENTITY_TYPE unit_type = i % 2 ? GAME_ENTITY_TYPE_MAX : GAME_ENTITY_TYPE_ALF;
 
-        Game_Entity *worker = create_worker((vec3){x_deviation, y_deviation, DEFAULT_UNIT_Z}, unit_type);
-        if (unit_type == GAME_ENTITY_TYPE_ALF)
-        {
-            worker->player_slot = 1;
-        }
-
-        control_group_add_unit(control_group, worker->entity->id);
+        Game_Entity *worker = create_worker((vec3){x_deviation, y_deviation, DEFAULT_UNIT_Z}, GAME_ENTITY_TYPE_MAX);
     }
 
     create_building((vec3){game_global.game_stores.in_game_store.map->start_x, game_global.game_stores.in_game_store.map->start_y, 0.05}, BUILDING_TYPE_BASE);

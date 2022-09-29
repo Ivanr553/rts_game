@@ -288,7 +288,10 @@ void show_command_board_info(Game_Entity *game_entity)
 {
     if (game_entity->building_component)
     {
-        show_building_command_board_info(game_entity);
+        if (game_entity->building_component->can_produce)
+        {
+            show_building_command_board_info(game_entity);
+        }
         return;
     }
 

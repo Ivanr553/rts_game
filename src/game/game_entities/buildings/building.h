@@ -7,6 +7,13 @@ typedef struct building_data
 {
     vec2 size;
     float unit_radius;
+    char *file_path;
+    int sprite_sheet_size[2];
+    short can_produce;
+    short can_rally;
+    int crystal_cost;
+    int build_time;
+    int pop_increase;
 } Building_Data;
 
 Game_Entity *create_building(float *pos, BUILDING_TYPE building_type);

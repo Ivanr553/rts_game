@@ -21,7 +21,8 @@ void add_building_component(Game_Entity *unit_entity, BUILDING_TYPE building_typ
 
 /** Resource */
 void add_resource_component(Game_Entity *unit_entity, RESOURCE resource_type, int amount);
-void resource_start_harvesting(Game_Entity *game_entity, long entity_id);
+int harvest_resource(Game_Entity *resource, Game_Entity *harvester);
+short is_harvestable(Game_Entity *resource, Game_Entity *harvester);
 Game_Entity *find_nearest_free_resource(Game_Entity *game_entity);
 
 /** UI */

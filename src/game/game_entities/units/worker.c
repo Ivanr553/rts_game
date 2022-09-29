@@ -41,7 +41,7 @@ Game_Entity *create_worker(vec3 pos, GAME_ENTITY_TYPE unit_type)
     /** Base Class*/
     Game_Entity *worker = create_game_entity(entity, game_global.game_stores.in_game_store.player->player_slot);
     add_selectable_component(worker, unit_type);
-    add_harvester_component(worker, 200, 0.3);
+    add_harvester_component(worker, 500, 0.3);
     add_combat_component(worker, 50, 0, 0, WEAPON_TYPE_MELEE, _WEAPON_TYPE);
     add_builder_component(worker, 1);
 
@@ -69,6 +69,8 @@ Game_Entity *create_worker(vec3 pos, GAME_ENTITY_TYPE unit_type)
     worker->entity = entity;
 
     add_entity(entity);
+
+    game_global.game_stores.in_game_store.player->population+= 1;
     return worker;
 };
 

@@ -7,22 +7,6 @@
 #include "../components/components.h"
 #include "../../state/state.h"
 
-void update_resource(Entity *entity)
-{
-    Game_Entity *game_entity = entity->entity_class;
-    Component_Resource *resource_component = game_entity->resource_component;
-
-    if (resource_component->recently_harvested_count > 0)
-    {
-        resource_component->recently_harvested_count--;
-
-        if (resource_component->recently_harvested_count == 0)
-        {
-            resource_component->recently_harvested_by_id = 0;
-        }
-    }
-}
-
 Game_Entity *create_resource(RESOURCE type, vec3 pos)
 {
     /** Initializing data */
@@ -33,7 +17,6 @@ Game_Entity *create_resource(RESOURCE type, vec3 pos)
     /** Entity */
     Entity *entity = create_entity(NULL, pos);
     entity->entity_class_type = ENTITY_CLASS_RESOURCE;
-    entity->update_entity = update_resource;
     entity->is_fixed_object = 1;
     entity->offset[0] = 1;
     entity->offset[1] = 1;

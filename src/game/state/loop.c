@@ -14,7 +14,11 @@ void game_loop(void)
     // printf("Starting game loop\n");
     handle_events();
 
-    game_loop_update_entities();
+    if (game_global.state == IN_GAME)
+    {
+        game_loop_update_entities();
+        game_global.game_stores.in_game_store.player->update_player();
+    }
     // printf("Ended game loop\n");
 };
 
@@ -57,9 +61,14 @@ short handle_entity_class_updates(Entity *entity)
         game_entity->ui_component->update_ui_entity(game_entity);
     }
 
-    if(game_entity->builder_component)
+    if (game_entity->builder_component)
     {
         game_entity->builder_component->update_builder_component(game_entity);
+    }
+
+    if (game_entity->resource_component)
+    {
+        game_entity->resource_component->update_resource_component(game_entity);
     }
 
     return 0;

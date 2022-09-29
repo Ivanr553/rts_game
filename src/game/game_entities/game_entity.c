@@ -17,7 +17,7 @@ void update_command_queue(Game_Entity *game_entity)
             Component_Builder *builder_component = game_entity->builder_component;
             builder_component->building_location[0] = build_command->pos[0];
             builder_component->building_location[1] = build_command->pos[1];
-            builder_component->building_location[2] = 0;
+            builder_component->building_location[2] = 0.01;
             builder_component->build_time = build_command->total_build_time;
             builder_component->total_build_time = build_command->total_build_time;
             builder_component->building_entity_type = build_command->type;

@@ -61,6 +61,7 @@ void input_update(void)
     update_key_state(keyboard_state[SDL_SCANCODE_TAB], &global.input.tab);
 
     /** Function Keys */
+    update_key_state(keyboard_state[SDL_SCANCODE_F3], &global.input.f3);
     update_key_state(keyboard_state[SDL_SCANCODE_F10], &global.input.f10);
 
     // Num Keys

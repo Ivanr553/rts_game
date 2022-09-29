@@ -16,6 +16,9 @@ typedef enum in_game_event
 {
     _IN_GAME_EVENT,
 
+    /** DEBUG ONLY*/
+    IN_GAME_EVENT_DEBUG_DELETE,
+
     IN_GAME_EVENT_ESCAPE,
 
     /** Command Button Events */

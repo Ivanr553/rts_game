@@ -164,6 +164,7 @@ void init_v2()
         "assets/UI/Text.png",
         "assets/props/Props_Sheet.png",
         "assets/buildings/Summoning-Circle.png",
+        "assets/buildings/RAM.png",
         "assets/UI/Icons.png",
         "assets/UI/Command-Buttons.png",
         "assets/units/SPIKE.png",

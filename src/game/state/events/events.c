@@ -141,6 +141,11 @@ void handle_events(void)
     {
         handle_in_game_event(IN_GAME_EVENT_COMMAND_BUTTON_12);
     }
+
+    if(global.input.f3)
+    {
+        handle_in_game_event(IN_GAME_EVENT_DEBUG_DELETE);
+    }
 };
 
 void handle_global_event(Global_Event event)
@@ -177,7 +182,7 @@ void handle_global_event(Global_Event event)
                 vec3 new_pos = {mouse_pos[0], mouse_pos[1], entity->pos[2]};
                 move_to(entity, new_pos);
 
-                if (game_entity->building_component)
+                if (game_entity->building_component && game_entity->building_component->can_rally)
                 {
                     game_entity->building_component->rally_point[0] = mouse_pos[0];
                     game_entity->building_component->rally_point[1] = mouse_pos[1];
@@ -211,12 +216,20 @@ void handle_global_event(Global_Event event)
 
         Array *selected_units = game_global.game_stores.in_game_store.selected_units_by_id;
         if (game_global.game_stores.in_game_store.is_placing_building)
-        {
+        {   
+            Building_Data building_data = get_building_data_by_type(game_global.game_stores.in_game_store.building_being_placed);
+
+            if(!spend_resources(building_data.crystal_cost, 0))
+            {
+                printf("Not enough resources to build\n");
+                return;
+            }
+
             Build_Command *build_command = calloc(1, sizeof(Build_Command));
             build_command->pos[0] = mouse_pos[0];
             build_command->pos[1] = mouse_pos[1];
             build_command->pos[2] = 0;
-            build_command->total_build_time = 100;
+            build_command->total_build_time = building_data.build_time;
             build_command->type = game_global.game_stores.in_game_store.building_being_placed;
 
             Queued_Command *command = calloc(1, sizeof(Queued_Command));

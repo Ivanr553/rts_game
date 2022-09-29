@@ -4,6 +4,7 @@
 #include "../../../engine/engine.h"
 #include "../components/components.h"
 #include "../../game_map/game_map.h"
+#include "../core/player.h"
 
 char *building = "assets/buildings/Summoning-Circle.png";
 
@@ -33,13 +34,16 @@ void create_arch(float *pos)
 
 GAME_ENTITY_TYPE get_game_entity_type_from_building_type(BUILDING_TYPE type)
 {
-    switch(type)
+    switch (type)
     {
-        case BUILDING_TYPE_BASE:
-            return GAME_ENTITY_TYPE_BASE;
-            
-        case BUILDING_TYPE_FACTORY:
-            return GAME_ENTITY_TYPE_FACTORY;
+    case BUILDING_TYPE_BASE:
+        return GAME_ENTITY_TYPE_BASE;
+
+    case BUILDING_TYPE_FACTORY:
+        return GAME_ENTITY_TYPE_FACTORY;
+
+    case BUILDING_TYPE_RAM:
+        return GAME_ENTITY_TYPE_RAM;
     }
 }
 
@@ -47,7 +51,6 @@ Game_Entity *create_building(float *pos, BUILDING_TYPE building_type)
 {
     /** Initializing data */
     int offset[2] = {1, 1};
-    int sprite_sheet_size[2] = {3, 1};
     int sprite_size[2] = {128, 128};
 
     Building_Data building_data = get_building_data_by_type(building_type);
@@ -69,13 +72,13 @@ Game_Entity *create_building(float *pos, BUILDING_TYPE building_type)
     add_collision_data(entity, building_data.unit_radius);
 
     /** Render Item */
-    Render_Item *render_item = get_render_item(1, RENDER_ITEM_QUAD, SHADER_DEFAULT, "assets/buildings/Summoning-Circle.png", 1);
+    Render_Item *render_item = get_render_item(1, RENDER_ITEM_QUAD, SHADER_DEFAULT, building_data.file_path, 1);
     append_item_to_render_item(render_item, entity);
 
     /** Only perform for the first entity */
     if (entity->vbo_pos == 0)
     {
-        add_sprite_sheet_data(render_item, sprite_size, sprite_sheet_size);
+        add_sprite_sheet_data(render_item, sprite_size, building_data.sprite_sheet_size);
         init_render_item(render_item, pos, entity->size, NULL, NULL, offset, NULL, 1);
         bind_render_item_data(render_item);
     }
@@ -84,32 +87,10 @@ Game_Entity *create_building(float *pos, BUILDING_TYPE building_type)
 
     add_entity(building->entity);
 
-    // float _pos_1[3] = {
-    //     pos[0] - 0.05,
-    //     pos[1] - 2.2,
-    //     1.55,
-    // };
-    // create_arch(_pos_1);
-    // float _pos_2[3] = {
-    //     pos[0] - 0.05,
-    //     pos[1] + 2.2,
-    //     1.55,
-    // };
-    // create_arch(_pos_2);
-
-    // float _pos_3[3] = {
-    //     pos[0] + 2.2,
-    //     pos[1],
-    //     1.55,
-    // };
-    // create_arch(_pos_3);
-
-    // float _pos_4[3] = {
-    //     pos[0] - 2.2,
-    //     pos[1],
-    //     1.55,
-    // };
-    // create_arch(_pos_4);
+    if(building_data.pop_increase > 0)
+    {
+        add_population_structure_id(entity->id, building_data.pop_increase);
+    }
 
     return building;
 };
@@ -121,20 +102,55 @@ Building_Data get_building_data_by_type(BUILDING_TYPE type)
     case BUILDING_TYPE_FACTORY:
     {
         Building_Data building_data = {
-            .unit_radius = 1.5};
+            .unit_radius = 1.5,
+            .file_path = "assets/buildings/Summoning-Circle.png",
+            .can_produce = 1,
+            .can_rally = 1,
+            .crystal_cost = 150,
+            .build_time = 3000,
+            .pop_increase = 0};
 
         building_data.size[0] = 3;
         building_data.size[1] = 3;
+        building_data.sprite_sheet_size[0] = 3;
+        building_data.sprite_sheet_size[1] = 1;
 
         return building_data;
     }
     case BUILDING_TYPE_BASE:
     {
         Building_Data building_data = {
-            .unit_radius = 2};
+            .unit_radius = 2,
+            .file_path = "assets/buildings/Summoning-Circle.png",
+            .can_produce = 1,
+            .can_rally = 1,
+            .crystal_cost = 400,
+            .build_time = 5000,
+            .pop_increase = 0};
 
         building_data.size[0] = 4;
         building_data.size[1] = 4;
+        building_data.sprite_sheet_size[0] = 3;
+        building_data.sprite_sheet_size[1] = 1;
+
+        return building_data;
+    }
+
+    case BUILDING_TYPE_RAM:
+    {
+        Building_Data building_data = {
+            .unit_radius = 1,
+            .file_path = "assets/buildings/RAM.png",
+            .can_produce = 0,
+            .can_rally = 0,
+            .crystal_cost = 100,
+            .build_time = 200,
+            .pop_increase = 10};
+
+        building_data.size[0] = 2;
+        building_data.size[1] = 2;
+        building_data.sprite_sheet_size[0] = 1;
+        building_data.sprite_sheet_size[1] = 1;
 
         return building_data;
     }

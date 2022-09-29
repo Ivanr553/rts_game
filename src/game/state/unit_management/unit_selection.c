@@ -51,7 +51,7 @@ void select_units(Array *entity_id_array)
             create_selection(game_entity->entity);
         }
 
-        if(game_entity->building_component)
+        if(game_entity->building_component && game_entity->building_component->can_rally)
         {
             create_rally_point(game_entity->entity);
         }

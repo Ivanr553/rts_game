@@ -17,13 +17,15 @@ typedef enum GAME_ENTITY_TYPE
     /** Buildings */
     GAME_ENTITY_TYPE_BASE,
     GAME_ENTITY_TYPE_FACTORY,
+    GAME_ENTITY_TYPE_RAM,
 } GAME_ENTITY_TYPE;
 
 typedef enum building_type
 {
     _BUILDING_TYPE,
     BUILDING_TYPE_BASE,
-    BUILDING_TYPE_FACTORY
+    BUILDING_TYPE_FACTORY,
+    BUILDING_TYPE_RAM
 } BUILDING_TYPE;
 
 typedef enum entity_class
@@ -157,6 +159,8 @@ typedef struct component_building
     Array *queued_builds;
     float *rally_point;
     void (*update_building_component)(struct game_entity *);
+    short can_rally;
+    short can_produce;
 } Component_Building;
 
 typedef struct component_resource
@@ -164,7 +168,9 @@ typedef struct component_resource
     RESOURCE resource_type;
     int amount;
     int recently_harvested_count;
-    long recently_harvested_by_id;
+    long harvesting_id;
+    long standby_harvesting_id;
+    void (*update_resource_component)(struct game_entity *);
 } Component_Resource;
 
 typedef struct component_ui
